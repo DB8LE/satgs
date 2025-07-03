@@ -1,6 +1,6 @@
 [project]
 name = "satgs"
-version = "0.1.2"
+version = "0.1.3"
 description = "A command line tool that controls radios and rotors for amateur satellite operation."
 authors = [
     {name = "DB8LE",email = "db8le@darc.de"}
@@ -8,6 +8,8 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "platformdirs (>=4.3.8,<5.0.0)",
+    "requests (>=2.32.4,<3.0.0)"
 ]
 
 [tool.poetry]

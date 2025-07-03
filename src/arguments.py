@@ -13,10 +13,11 @@ def show_version():
         latest_commit_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
     except FileNotFoundError:
         logging.log(logging.DEBUG, "Git not installed, failed to check for branch.")
+        git_branch = "main" # it the user doesn't have git installed, they're probably using the master branch anyway
+        latest_commit_hash = "N/A"
     except subprocess.CalledProcessError as e:
         logging.log(logging.DEBUG, "Error while checking git branch & lastest commit hash.")
         logging.log(logging.DEBUG, e)
-    finally:
         git_branch = "main" # it the user doesn't have git installed, they're probably using the master branch anyway
         latest_commit_hash = "N/A"
 
