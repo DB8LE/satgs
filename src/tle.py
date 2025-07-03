@@ -95,6 +95,25 @@ def remove_source(source_url: str):
     with open(paths.SOURCES_PATH, "w") as f:
         f.writelines(lines)
 
+def list_sources() -> list[str]:
+    """
+    Logs a list of all sources with indexes, and returns a list of the source URLs corrensponding to the logged indexes-1
+    """
+    # Read sources
+    with open(paths.SOURCES_PATH, "r") as f:
+        sources = f.readlines()
+
+    # Prepare output and 
+    logged_sources = []
+    for source in sources:
+        if source == "\n":
+            continue
+        source = source.strip()
+        logging.log(logging.INFO, f"{len(logged_sources)+1}. {source}")
+        logged_sources.append(source)
+
+    return logged_sources
+
 def _process_TLE(data: dict[str, str | int], source: str):
     """
     Internal function used by `download_TLEs` to save TLE data after it had been downloaded and parsed.

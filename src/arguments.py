@@ -1,9 +1,10 @@
+from src import tle, util
 import argparse, logging
 
 def set_debug():
     logging.getLogger().setLevel(logging.DEBUG)
 
-def show_version():
+def show_version(args):
     # If check for testing branch. If it is detected, also show latest commit hash
     # We could use a library for this to gurantee that it works, regardless if git is installed,
     # but the user probably has git installed anyway so no need for another library 
@@ -33,29 +34,64 @@ def no_args_message(args):
     logging.log(logging.ERROR, "Please provide a subcommand to run. Run `satgs --help` for help.")
     
 
-def test_func(args):
-    logging.log(logging.INFO, "Test")
-    if args.foo:
-        logging.log(logging.INFO, "Got test argument")
+# TLE subcommand functions
+def update_TLEs(args):
+    logging.log(logging.INFO, "Updating TLEs...")
+    tle.download_TLEs()
+    logging.log(logging.INFO, "Done!")
+    exit()
 
+# sources subcommand functions
+def add_source(args):
+    logging.log(logging.INFO, "Enter the URL to the source your would like to add.")
+    source_url = util.decorated_input()
+    tle.add_source(source_url)
+    exit()
+
+def list_sources(args):
+    logging.log(logging.INFO, "Listing sources...")
+    tle.list_sources()
+    exit()
+
+def remove_source(args):
+    logging.log(logging.INFO, "Listing sources...")
+    sources = tle.list_sources()
+    logging.log(logging.INFO, "Enter the index of the source you'd like to remove.")
+    remove_index = int(util.decorated_input())-1
+    tle.remove_source(sources[remove_index])
 
 def set_up_argparse():
     # Set up base parser
     parser = argparse.ArgumentParser(prog="satgs", add_help=True)
     parser.add_argument("--debug", action="store_true",
                         help="set logging level to debug")
-    parser.add_argument("--version", action="store_true",
-                        help="show program version and exit")
 
+    # Set up subcommands
+    sub_parsers = parser.add_subparsers()
 
-    # Set up sub commands
-    sub_parsers = parser.add_subparsers(required=False)
+    # version subcommand
+    parser_version = sub_parsers.add_parser("version", help="Show version")
+    parser_version.set_defaults(func=show_version)
 
+    # TLE subcommands
+    parser_tle = sub_parsers.add_parser("tle", help="Manage TLEs")
+    tle_sub = parser_tle.add_subparsers(required=True)
 
-    sub_test = sub_parsers.add_parser("test", parents=[parser], add_help=False,
-                                      help="A test subcommand. Temporary!")
-    sub_test.set_defaults(func=test_func)
-    sub_test.add_argument("--foo", action="store_true", help="Test argument!")
+    parser_tle_update = tle_sub.add_parser("update", help="Update all TLEs")
+    parser_tle_update.set_defaults(func=update_TLEs)
+
+    # sources subcommands
+    parser_sources = sub_parsers.add_parser("sources", help="Manage TLE sources")
+    sources_sub = parser_sources.add_subparsers(required=True)
+
+    parser_sources_add = sources_sub.add_parser("add", help="Add a TLE source")
+    parser_sources_add.set_defaults(func=add_source)
+
+    parser_sources_list = sources_sub.add_parser("list", help="List all current TLE sources")
+    parser_sources_list.set_defaults(func=list_sources)
+
+    parser_sources_remove = sources_sub.add_parser("remove", help="Remove a TLE source")
+    parser_sources_remove.set_defaults(func=remove_source)
     
     # Set default function (if no subcommand was provided) to show error message
     parser.set_defaults(func=no_args_message)
@@ -67,8 +103,6 @@ def set_up_argparse():
     # Handle global arguments
     if args.debug:
         set_debug()
-    if args.version:
-        show_version()
 
     # Run subcommand associated functions
     args.func(args)

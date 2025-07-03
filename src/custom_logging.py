@@ -1,3 +1,4 @@
+from src import util
 import logging, os, sys
 
 class CustomFormatter(logging.Formatter):
@@ -27,16 +28,6 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(fmt, "%H:%M:%S")
         return formatter.format(record)
 
-def is_poetry():
-    """A function to check if program is being run in poetry environment"""
-    venv = os.environ.get("VIRTUAL_ENV")
-    if not venv:
-        return False
-    name = os.path.basename(venv)
-    if "poetry" in os.path.dirname(venv) or name.startswith(os.path.basename(os.getcwd()) + "-"):
-        return True
-    return os.environ.get("POETRY_ACTIVE") == "1"
-
 def handle_uncaught(exc_type, exc_value, exc_tb):
     """A function to show uncaught exceptions by sending them to logging"""
 
@@ -51,7 +42,7 @@ def set_up_logging():
 
     # Set logging level to debug if run in poetry environment
     logging_level = logging.INFO
-    if is_poetry():
+    if util.is_poetry():
         logging_level = logging.DEBUG
 
     # Set up logging to print to console
