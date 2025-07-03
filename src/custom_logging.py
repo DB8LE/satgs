@@ -28,7 +28,7 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 def is_poetry():
-    # Function to check if program is being run in poetry environment
+    """A function to check if program is being run in poetry environment"""
     venv = os.environ.get("VIRTUAL_ENV")
     if not venv:
         return False
@@ -37,7 +37,18 @@ def is_poetry():
         return True
     return os.environ.get("POETRY_ACTIVE") == "1"
 
+def handle_uncaught(exc_type, exc_value, exc_tb):
+    """A function to show uncaught exceptions by sending them to logging"""
+
+    logging.log(logging.ERROR, "Unhandled exception: %s", exc_value)
+    logging.log(logging.DEBUG, "Full traceback:", exc_info=(exc_type, exc_value, exc_tb))
+    sys.exit(1)
+
 def set_up_logging():
+    """A function that sets up a basic logging system that prints to stdout"""
+    # Set exceptions to be handeled by custom function
+    sys.excepthook = handle_uncaught
+
     # Set logging level to debug if run in poetry environment
     logging_level = logging.INFO
     if is_poetry():
