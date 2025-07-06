@@ -1,0 +1,7 @@
+{
+    "station_latitude": 0.0,
+    "station_longitude": 0.0,
+    "station_altitude": 0.0,
+    "tracking_update_interval": 1,
+    "tles_outdated_seconds": 259200
+}

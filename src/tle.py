@@ -1,8 +1,7 @@
-import json.tool
-from src import paths
+from src import paths, settings
 import logging, json, requests, os, datetime
 
-TLE_OUTDATED_SECONDS = 96 * 3600 # Hours until TLEs will be considered out of date in seconds NOTE: move this to a settings file?
+TLE_OUTDATED_SECONDS = settings.get_setting("tles_outdated_seconds") # Hours until TLEs will be considered out of date in seconds
 
 EXPECTED_TLE_JSON_KEYS = ['OBJECT_NAME', 'OBJECT_ID', 'EPOCH', 'MEAN_MOTION', 'ECCENTRICITY', 'INCLINATION', 'RA_OF_ASC_NODE', 'ARG_OF_PERICENTER', 'MEAN_ANOMALY', 'EPHEMERIS_TYPE', 'CLASSIFICATION_TYPE', 'NORAD_CAT_ID', 'ELEMENT_SET_NO', 'REV_AT_EPOCH', 'BSTAR', 'MEAN_MOTION_DOT', 'MEAN_MOTION_DDOT']
 

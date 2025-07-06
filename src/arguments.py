@@ -1,4 +1,4 @@
-from src import tle, util
+from src import tle, util, settings
 import argparse, logging
 
 def set_debug():
@@ -60,6 +60,20 @@ def remove_source(args):
     remove_index = int(util.decorated_input())-1
     tle.remove_source(sources[remove_index])
 
+# settings subcommands
+def list_settings(args):
+    logging.log(logging.INFO, "Listing settings...")
+    settings_data = settings.load_settings_file()
+
+    for setting, value in settings_data.items():
+        logging.log(logging.INFO, setting+": "+str(value))
+    exit()
+
+def modify_setting(args):
+    logging.log(logging.INFO, f"Setting value of setting '{args.setting_key}' to '{args.new_setting_value}'")
+    settings.set_setting(args.setting_key, args.new_setting_value)
+    exit()
+
 def set_up_argparse():
     # Set up base parser
     parser = argparse.ArgumentParser(prog="satgs", add_help=True)
@@ -92,6 +106,19 @@ def set_up_argparse():
 
     parser_sources_remove = sources_sub.add_parser("remove", help="Remove a TLE source")
     parser_sources_remove.set_defaults(func=remove_source)
+
+    # settings subcommands
+    parser_settings = sub_parsers.add_parser("settings", help="View and change settings")
+    settings_sub = parser_settings.add_subparsers(required=True)
+
+    parser_settings_list = settings_sub.add_parser("list", help="List all settings")
+    parser_settings_list.set_defaults(func=list_settings)
+
+    parser_settings_modify = settings_sub.add_parser("modify", help="Modify the value of a setting")
+    parser_settings_modify.add_argument("setting_key", choices=settings.load_settings_file().keys(),
+                                        help="The key of the setting to modify (check with `satgs settings list`)")
+    parser_settings_modify.add_argument("new_setting_value", help="The new value of the setting")
+    parser_settings_modify.set_defaults(func=modify_setting)
     
     # Set default function (if no subcommand was provided) to show error message
     parser.set_defaults(func=no_args_message)

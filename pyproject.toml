@@ -1,6 +1,6 @@
 [project]
 name = "satgs"
-version = "0.1.4"
+version = "0.1.5"
 description = "A command line tool that controls radios and rotors for amateur satellite operation."
 authors = [
     {name = "DB8LE",email = "db8le@darc.de"}
@@ -14,6 +14,7 @@ dependencies = [
 
 [tool.poetry]
 packages = [{ include = "src" }]
+include = ["src/resources/**"]
 
 [tool.poetry.scripts]
 satgs = "src.main:main"
