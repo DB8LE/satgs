@@ -1,4 +1,4 @@
-from src import tle, util, settings
+from src import tle, util, tracking, settings
 import argparse, logging
 
 def set_debug():
@@ -60,6 +60,11 @@ def remove_source(args):
     remove_index = int(util.decorated_input())-1
     tle.remove_source(sources[remove_index])
 
+# tracking subcommand
+def track(args):
+    # just a wrapper to accept the arguments
+    tracking.track(args.NORAD_ID, args.rotor, args.radio, args.usb)
+
 # settings subcommands
 def list_settings(args):
     logging.log(logging.INFO, "Listing settings...")
@@ -106,6 +111,18 @@ def set_up_argparse():
 
     parser_sources_remove = sources_sub.add_parser("remove", help="Remove a TLE source")
     parser_sources_remove.set_defaults(func=remove_source)
+
+    # tracking subcommand
+    parser_track = sub_parsers.add_parser("track", help="Track a satellite")
+    parser_track.add_argument("NORAD_ID", help="NORAD ID of the satellite to be tracked." \
+                                                  "TLE must be avaliable in local database.")
+    parser_track.add_argument("--radio", type=str, choices=tracking.list_radios(),
+                              help="The name of a radio config file (without file extension)")
+    parser_track.add_argument("--rotor", type=str, choices=tracking.list_rotors(),
+                              help="The name of a rotor config file (without file extension)")
+    parser_track.add_argument("-u", "--usb", type=str,
+                              help="USB port that the rotor is connected to")
+    parser_track.set_defaults(func=track)
 
     # settings subcommands
     parser_settings = sub_parsers.add_parser("settings", help="View and change settings")

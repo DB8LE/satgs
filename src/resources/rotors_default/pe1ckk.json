@@ -1,0 +1,10 @@
+{
+    "usb_port": "/dev/ttyUSB0",
+    "rotctl_ID": 601,
+    "rotctld_port": 4533,
+    "min_az": 1,
+    "max_az": 359,
+    "min_el": 2,
+    "max_el": 90,
+    "control_type": 1
+}

@@ -1,4 +1,6 @@
 from src import paths, settings
+from skyfield.api import EarthSatellite
+from skyfield.timelib import Timescale
 import logging, json, requests, os, datetime
 
 TLE_OUTDATED_SECONDS = settings.get_setting("tles_outdated_seconds") # Hours until TLEs will be considered out of date in seconds
@@ -246,4 +248,21 @@ def check_TLEs_outdated() -> bool:
     last_update = get_last_TLE_update()
     delta = datetime.datetime.now(datetime.timezone.utc) - last_update
 
-    return delta.total_seconds() > TLE_OUTDATED_SECONDS
+    return delta.total_seconds() > int(TLE_OUTDATED_SECONDS)
+
+def load_tle(NORAD_ID: str, timescale: Timescale) -> EarthSatellite | None:
+    """
+    Load a satellite TLE by it's NORAD ID. Will return None if TLE can't be found in local files.
+    If TLE is found, this function will return a skyfield `EarthSatellite` object.
+    """
+
+    # Try to open TLE file
+    try:
+        with open(os.path.join(paths.TLE_DIRECTORY_PATH, NORAD_ID+".json"), "r") as f:
+            TLE_data = json.load(f)
+
+        # Initialize and return EarthSatellite object.
+        return EarthSatellite.from_omm(timescale, TLE_data)
+    except FileNotFoundError:
+        # If it doesn't exist, return none
+        return None
