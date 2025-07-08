@@ -1,6 +1,7 @@
 from src import paths, settings
 from skyfield.api import EarthSatellite
 from skyfield.timelib import Timescale
+from typing import List, Tuple
 import logging, json, requests, os, datetime
 
 TLE_OUTDATED_SECONDS = settings.get_setting("tles_outdated_seconds") # Hours until TLEs will be considered out of date in seconds
@@ -96,7 +97,7 @@ def remove_source(source_url: str):
     with open(paths.SOURCES_PATH, "w") as f:
         f.writelines(lines)
 
-def list_sources() -> list[str]:
+def list_sources() -> List[str]:
     """
     Logs a list of all sources with indexes, and returns a list of the source URLs corrensponding to the logged indexes-1
     """
@@ -249,6 +250,20 @@ def check_TLEs_outdated() -> bool:
     delta = datetime.datetime.now(datetime.timezone.utc) - last_update
 
     return delta.total_seconds() > int(TLE_OUTDATED_SECONDS)
+
+def load_tle_data() -> List[Tuple[str, str, str]]:
+    """
+    Load NORAD IDs, COSPAR IDs and names for all available satellites and return them in a list of tuples (NORAD, COSPAR, name).
+    """
+
+    data = []
+    tle_files = os.listdir(paths.TLE_DIRECTORY_PATH)
+    for tle_file in tle_files:
+        with open(os.path.join(paths.TLE_DIRECTORY_PATH, tle_file), "r") as f:
+            tle_data = json.load(f)
+        data.append((str(tle_data["NORAD_CAT_ID"]), tle_data["OBJECT_ID"], tle_data["OBJECT_NAME"]))
+    
+    return data
 
 def load_tle(NORAD_ID: str, timescale: Timescale) -> EarthSatellite | None:
     """

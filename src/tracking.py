@@ -1,17 +1,18 @@
 from src import tle, paths, settings, radios, rotors
 from skyfield.api import load, wgs84
+from typing import List
 import logging, os, datetime, time
 
 TRACKING_UPDATE_INTERVAL = int(settings.get_setting("tracking_update_interval")) # Tracking update interval in seconds
 
-def list_rotors() -> list[str]:
+def list_rotors() -> List[str]:
     """Return a list of all rotor config file names (excluding file extension)"""
     files = os.listdir(paths.ROTOR_CONFIG_DIRECTORY_PATH)
     files_no_extension = [file[:-5] for file in files]
 
     return files_no_extension
 
-def list_radios() -> list[str]:
+def list_radios() -> List[str]:
     """Return a list of all radio config file names (excluding file extension)"""
     files = os.listdir(paths.RADIO_CONFIG_DIRECTORY_PATH)
     files_no_extension = [file[:-5] for file in files]

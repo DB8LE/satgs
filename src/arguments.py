@@ -57,13 +57,16 @@ def remove_source(args):
     logging.log(logging.INFO, "Listing sources...")
     sources = tle.list_sources()
     logging.log(logging.INFO, "Enter the index of the source you'd like to remove.")
-    remove_index = int(util.decorated_input())-1
-    tle.remove_source(sources[remove_index])
+    try:
+        remove_index = int(util.decorated_input())-1
+        tle.remove_source(sources[remove_index])
+    except (TypeError, ValueError, IndexError):
+        logging.log(logging.ERROR, "Invalid choice!")
 
 # tracking subcommand
 def track(args):
     # just a wrapper to accept the arguments
-    tracking.track(args.NORAD_ID, args.rotor, args.radio, args.usb)
+    tracking.track(util.satellite_norad_from_input(args.satellite), args.rotor, args.radio, args.usb)
 
 # settings subcommands
 def list_settings(args):
@@ -114,7 +117,7 @@ def set_up_argparse():
 
     # tracking subcommand
     parser_track = sub_parsers.add_parser("track", help="Track a satellite")
-    parser_track.add_argument("NORAD_ID", help="NORAD ID of the satellite to be tracked." \
+    parser_track.add_argument("satellite", help="Either the NORAD ID, COSPAR ID or name of the satellite to be tracked." \
                                                   "TLE must be avaliable in local database.")
     parser_track.add_argument("--radio", type=str, choices=tracking.list_radios(),
                               help="The name of a radio config file (without file extension)")
