@@ -165,9 +165,9 @@ def download_TLEs(log_progress: bool = True):
         source = source.strip()
 
         # Log progress
-        progress_percent = i-skipped/total_sources
+        progress_percent = ((i-skipped+1)/total_sources)*100
         progress_bar = f"[{"="*(round(progress_percent/10))}{" "*(10-round(progress_percent/10))}]"
-        logging.log(progress_log_level, f"Updating TLEs... {progress_bar} ({i-skipped}/{total_sources})")
+        logging.log(progress_log_level, f"Updating TLEs... {progress_bar} ({i-skipped+1}/{total_sources})")
         
         # Try to download TLEs
         try:
@@ -197,7 +197,6 @@ def download_TLEs(log_progress: bool = True):
         else:
             logging.log(logging.WARN, f"Failed to download TLEs from source {source}. Source provided data that caused an invalid data type after parsing. Skipping this source.")
             continue
-    logging.log(progress_log_level, f"Updating TLEs... [==========] ({total_sources}/{total_sources})")
 
     # Update last TLE update timestamp
     timestamp = int(datetime.datetime.now(datetime.timezone.utc).timestamp())

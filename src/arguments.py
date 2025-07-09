@@ -36,7 +36,6 @@ def no_args_message(args):
 
 # TLE subcommand functions
 def update_TLEs(args):
-    logging.log(logging.INFO, "Updating TLEs...")
     tle.download_TLEs()
     logging.log(logging.INFO, "Done!")
     exit()
