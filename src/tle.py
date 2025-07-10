@@ -215,8 +215,14 @@ def get_last_TLE_update() -> datetime.datetime:
 def get_TLE_age_human_readable() -> str:
     """
     Returns a string about how long ago the last TLE update was in a human readable format.
+    Will return "never" if TLEs have never been updated.
     """
     last_update = get_last_TLE_update()
+
+    # Check if TLEs have never been updated (assuming time travel isn't possible)
+    if last_update.timestamp() == 0:
+        return "never"
+
     delta = datetime.datetime.now(datetime.timezone.utc) - last_update
     seconds = delta.total_seconds()
 

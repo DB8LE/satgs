@@ -14,7 +14,7 @@ Now satgs should be installed and accessible by running `satgs` in your command 
 
 ## Updating
 
-Before updating, you might have to reset your config files to prevent problems.
+Before updating, you might have to reset your config files to prevent problems. For patch updates (the third digit in the version number), this probably won't be necessary but it's better to do this, just to be safe.
 
 To do this, you can run `$ satgs settings clean`. Be careful with this command, as it will wipe all your configuration files. If you have any custom rotor/radio configurations, make sure to back them up first, and check the README of the newest versions to see if changes have been made to their format.
 

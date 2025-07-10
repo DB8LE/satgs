@@ -45,10 +45,13 @@ def main():
 
     # Check for TLE age
     TLE_age_human_readable = tle.get_TLE_age_human_readable()
-    if tle.check_TLEs_outdated():
-        logging.log(logging.WARN, f"TLEs are {TLE_age_human_readable} old. Update when possible.")
+    if TLE_age_human_readable == "never":
+        logging.log(logging.WARN, f"TLEs have never been updated. Update using `satgs tle update` when possible.")
     else:
-        logging.log(logging.INFO, f"TLEs are {TLE_age_human_readable} old.")
+        if tle.check_TLEs_outdated():
+            logging.log(logging.WARN, f"TLEs are {TLE_age_human_readable} old. Update when possible.")
+        else:
+            logging.log(logging.INFO, f"TLEs are {TLE_age_human_readable} old.")
 
     # Set up argument parsing and parse args
     arguments.set_up_argparse()
