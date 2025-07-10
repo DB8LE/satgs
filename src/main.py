@@ -1,4 +1,4 @@
-from src import custom_logging, arguments, paths, tle, settings
+from src import custom_logging, arguments, paths, tle
 import logging, os, shutil
 import importlib.resources
 

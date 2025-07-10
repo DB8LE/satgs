@@ -6,11 +6,19 @@ SatGS is a command line tool that controls radios and rotors for amateur satelli
 
 ## Installation
 
-First, [install pipx](https://pipx.pypa.io/latest/installation/). Then run:
+First, [install pipx](https://pipx.pypa.io/latest/installation/) and make sure you have rigctld and rotctld installed. Then run:
 
 `$ pipx install git+https://github.com/DB8LE/satgs`
 
 Now satgs should be installed and accessible by running `satgs` in your command line.
+
+## Updating
+
+Before updating, you might have to reset your config files to prevent problems.
+
+To do this, you can run `$ satgs settings clean`. Be careful with this command, as it will wipe all your configuration files. If you have any custom rotor/radio configurations, make sure to back them up first, and check the README of the newest versions to see if changes have been made to their format.
+
+Then, simply run `$ pipx upgrade satgs`.
 
 ## Configuration files
 

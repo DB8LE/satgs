@@ -1,5 +1,5 @@
-from src import tle
-import os, datetime, re, logging
+from src import tle, paths
+import os, datetime, re, logging, shutil
 
 COSPAR_ID_REGEX = re.compile(r'^[0-9]{4}-[0-9]{3}[A-Z]{1,3}$')
 
@@ -64,3 +64,13 @@ def satellite_norad_from_input(input: str) -> str:
             except (TypeError, ValueError, IndexError):
                 logging.log(logging.ERROR, "Invalid choice!")
                 exit()
+
+def clean_all_data():
+    """
+    A function to delete all data files ever created by satgs.
+    """
+
+    logging.log(logging.INFO, "Deleting data..")
+    shutil.rmtree(paths.CONFIG_DIR)
+    shutil.rmtree(paths.DATA_DIR)
+    logging.log(logging.INFO, "Done!")

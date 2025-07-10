@@ -1,4 +1,4 @@
-from src import tle, util, tracking, settings
+from src import tle, util, tracking, settings, paths
 import argparse, logging
 
 def set_debug():
@@ -81,6 +81,15 @@ def modify_setting(args):
     settings.set_setting(args.setting_key, args.new_setting_value)
     exit()
 
+def get_settings_path(args):
+    logging.log(logging.INFO, "Settings path: "+paths.CONFIG_DIR)
+
+def clean_data(args):
+    logging.log(logging.INFO, "Are you sure that you want to delete all settings (rotor config, radio config, sources, settings)? (N/y)")
+    choice = util.decorated_input()
+    if choice.lower().strip() == "y":
+        util.clean_all_data()
+
 def set_up_argparse():
     # Set up base parser
     parser = argparse.ArgumentParser(prog="satgs", add_help=True)
@@ -138,6 +147,12 @@ def set_up_argparse():
                                         help="The key of the setting to modify (check with `satgs settings list`)")
     parser_settings_modify.add_argument("new_setting_value", help="The new value of the setting")
     parser_settings_modify.set_defaults(func=modify_setting)
+
+    parser_settings_get_path = settings_sub.add_parser("path", help="Get the path in which all config files are stored")
+    parser_settings_get_path.set_defaults(func=get_settings_path)
+
+    parser_setting_clean_data = settings_sub.add_parser("clean", help="Delete all config and data files created by satgs")
+    parser_setting_clean_data.set_defaults(func=clean_data)
     
     # Set default function (if no subcommand was provided) to show error message
     parser.set_defaults(func=no_args_message)

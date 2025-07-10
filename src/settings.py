@@ -2,12 +2,17 @@
 import importlib.resources
 from typing import Any
 from src import paths
-import json, logging
+import json, logging, os
 
 def restore_default_settings():
     """
     Restores current settings file to defaults.
     """
+    # Ensure config parent directory exists
+    if not os.path.exists(paths.CONFIG_DIR):
+        os.makedirs(paths.CONFIG_DIR, exist_ok=True)
+
+    # Restore default settings file
     with importlib.resources.open_text('src.resources', 'default_settings.json') as f:
         defaults = f.read()
 
