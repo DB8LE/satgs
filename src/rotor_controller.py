@@ -28,7 +28,7 @@ def parse_rotor_config(rotor_config_name: str) -> dict[str, str | int]:
 
     return json_data
 
-class Rotor():
+class Rotor_Controller():
     def __init__(self, rotor_config_name, usb_overwrite: str | None = None) -> None:
         """
         Initialize rotor object. Must provide the name of the rotor config file to be read, without the extension.

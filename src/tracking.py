@@ -1,4 +1,5 @@
-from src import tle, paths, settings, radios, rotors
+from . import radio_controller, rotor_controller
+from src import tle, paths, settings
 from skyfield.api import load, wgs84
 from typing import List
 import logging, os, datetime, time
@@ -68,7 +69,7 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
     # Initialize rotor
     rotor = None
     if rotor_config_name:
-        rotor = rotors.Rotor(rotor_config_name, usb_overwrite)
+        rotor = rotor_controller.Rotor_Controller(rotor_config_name, usb_overwrite)
     
     # Initialize radio
     # TODO: radio
