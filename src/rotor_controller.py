@@ -1,9 +1,10 @@
 from src import paths
+from typing import Dict
 import subprocess, os, json, logging, socket
 
 ROTOR_CONF_EXPECTED_KEYS = ["usb_port", "rotctl_ID", "rotctld_port", "min_az", "max_az", "min_el", "max_el", "control_type"]
 
-def parse_rotor_config(rotor_config_name: str) -> dict[str, str | int]:
+def parse_rotor_config(rotor_config_name: str) -> Dict[str, str | int]:
     """
     Parse a rotor config file by its file name (excluding file exension).
     Returns all values specified in the README section for the rotor config files in a dictionary.
@@ -29,7 +30,7 @@ def parse_rotor_config(rotor_config_name: str) -> dict[str, str | int]:
     return json_data
 
 class Rotor_Controller():
-    def __init__(self, rotor_config_name, usb_overwrite: str | None = None) -> None:
+    def __init__(self, rotor_config_name: str, usb_overwrite: str | None = None) -> None:
         """
         Initialize rotor object. Must provide the name of the rotor config file to be read, without the extension.
         Optionally, define a usb port to overwrite the one in the config.

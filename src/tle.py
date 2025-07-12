@@ -4,7 +4,7 @@ from skyfield.timelib import Timescale
 from typing import List, Tuple
 import logging, json, requests, os, datetime
 
-TLE_OUTDATED_SECONDS = settings.get_setting("tles_outdated_seconds") # Hours until TLEs will be considered out of date in seconds
+TLE_OUTDATED_SECONDS = int(settings.get_setting("tles_outdated_seconds")) # Hours until TLEs will be considered out of date in seconds
 
 EXPECTED_TLE_JSON_KEYS = ['OBJECT_NAME', 'OBJECT_ID', 'EPOCH', 'MEAN_MOTION', 'ECCENTRICITY', 'INCLINATION', 'RA_OF_ASC_NODE', 'ARG_OF_PERICENTER', 'MEAN_ANOMALY', 'EPHEMERIS_TYPE', 'CLASSIFICATION_TYPE', 'NORAD_CAT_ID', 'ELEMENT_SET_NO', 'REV_AT_EPOCH', 'BSTAR', 'MEAN_MOTION_DOT', 'MEAN_MOTION_DDOT']
 

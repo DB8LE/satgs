@@ -1,10 +1,10 @@
-from . import radio_controller, rotor_controller
-from src import tle, paths, settings
+from src import radio_controller, rotor_controller, tle, paths, settings, transponders
 from skyfield.api import load, wgs84
+from skyfield.units import Velocity
 from typing import List
 import logging, os, datetime, time
 
-TRACKING_UPDATE_INTERVAL = int(settings.get_setting("tracking_update_interval")) # Tracking update interval in seconds
+TRACKING_UPDATE_INTERVAL = float(settings.get_setting("tracking_update_interval")) # Tracking update interval in seconds
 
 def list_rotors() -> List[str]:
     """Return a list of all rotor config file names (excluding file extension)"""
@@ -32,7 +32,7 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
     station_latitude = settings.get_setting("station_latitude")
     station_longitude = settings.get_setting("station_longitude")
     station_altitude = settings.get_setting("station_altitude")
-    station_location = wgs84.latlon(station_latitude, station_longitude, station_altitude)
+    station_location = wgs84.latlon(float(station_latitude), float(station_longitude), float(station_altitude))
 
     # Try to load TLE
     satellite = tle.load_tle(NORAD_ID, timescale)
@@ -44,6 +44,25 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
             logging.log(logging.WARN, "Successfully loaded TLE for satellite with NORAD ID "+NORAD_ID+", but satellite name was None.")
         else:
             logging.log(logging.INFO, "Successfully loaded TLE for satellite '"+satellite.name+"'")
+
+    # If radio is defined, prompt user to select transponder
+    downlink_start = None
+    uplink_start = None
+    if radio_config_name:
+        logging.log(logging.INFO, "Please select which transponder the radio(s) should track:")
+        transponder_UUID = transponders.user_transponder_selection(NORAD_ID)
+        transponder_frequencies = transponders.get_transponder_frequencies(NORAD_ID, transponder_UUID)
+        downlink_lower, downlink_upper, uplink_lower, uplink_upper = transponder_frequencies
+
+        # Set starting frequency to middle of upper and lower downlink frequency if an upper frequency is given
+        downlink_start = downlink_lower
+        if downlink_upper:
+            downlink_start = (downlink_lower + downlink_upper) // 2
+
+        # The same for uplink
+        uplink_start = uplink_lower
+        if uplink_upper:
+            uplink_start = (uplink_lower + uplink_upper) // 2
 
     # Calculate time of next pass
     utc_now = datetime.datetime.now(datetime.timezone.utc)
@@ -72,7 +91,9 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
         rotor = rotor_controller.Rotor_Controller(rotor_config_name, usb_overwrite)
     
     # Initialize radio
-    # TODO: radio
+    radio = None
+    if radio_config_name:
+        radio = radio_controller.Radio_Controller(radio_config_name, downlink_start, uplink_start)
 
     logging.log(logging.INFO, "Ready to start")
 
@@ -105,20 +126,45 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
 
         while True:
             utc_now = datetime.datetime.now(datetime.timezone.utc)
-
-            # Calculate current satellite position
             pos = (satellite - station_location).at(timescale.from_datetime(utc_now))
-            elevation, azimuth, _ = pos.altaz()
-            azimuth = round(azimuth.degrees) # type: ignore
-            elevation = round(elevation.degrees) # type: ignore
-
-            # Log current status to console
-            logging.log(logging.INFO, f"AZ: {azimuth}°  EL: {elevation}°")
 
             # Handle rotor
+            rotor_status_msg = ""
             if rotor:
+                # Calculate current satellite position
+                elevation, azimuth, _ = pos.altaz()
+                azimuth = round(azimuth.degrees) # type: ignore
+                elevation = round(elevation.degrees) # type: ignore
+
+                # Update rotor position
                 rotor.update(round(azimuth), round(elevation)) # type: ignore
+
+                # Generate rotor status message
+                rotor_status_msg = f"AZ: {azimuth}°  EL: {elevation}°     "
+
+            # Handle radios
+            radio_status_msg = ""
+            if radio:
+                # Calculate range rate
+                _, _, _, _, _, range_rate = pos.frame_latlon_and_rates(station_location)
             
+                # Update frequencies
+                radio.update(range_rate) # type: ignore
+
+                # Prepare status message
+                downlink_message = ""
+                uplink_message = ""
+
+                if radio.corrected_downlink:
+                    downlink_message = f"D: {str(round(radio.corrected_downlink/1000000, 4))}M"
+                if radio.corrected_uplink:
+                    uplink_message = f"U: {str(round(radio.corrected_uplink/1000000, 4))}M"
+
+                radio_status_msg = f"{downlink_message} {uplink_message}"
+
+            # Log current status to console
+            logging.log(logging.INFO, rotor_status_msg+radio_status_msg)
+
             # Wait delay
             time.sleep(TRACKING_UPDATE_INTERVAL)
     except BaseException as e:

@@ -38,7 +38,7 @@ Note 2: Support for rotors that communicate with rotctl over anything other than
                                 // this can be overwritten with the -u or --usb command line argument
     "rotctl_ID": 123, // rotctl id of your rotor
                      // to find this, run `rotctl --list`
-    "rotctld_port": 4533, // port for rotctld. make sure this doesn't share a port with any
+    "rotctld_port": 4533, // port for rotctld. Make sure this doesn't share a port with any
                           // rigctld instances.
     "min_az": 1, // minimum azimuth that the rotor is capable of
     "max_az": 359, // maximum azimuth that the rotor is capable of
@@ -59,8 +59,23 @@ Note 2: Support for rotors that communicate with rotctl over anything other than
 
 ### Radio
 
+There are multiple radio types you can configure. You can define any combination of these, as long as at least one is defined, and only a maximum of one of each type is defined.
+
 ```json
-{}
+{
+    "sdr": { // a connection to a rigctl server like the one in SDR++ to serve as a receiver (downlink)
+        "rigctl_port": 4532
+    },
+    "tx": { // a hamlib controlled rig to serve as a transmitter (uplink) [NOT IMPLEMENTED YET]
+
+    },
+    "rx": { // a hamlib controlled rig to serve as a receiver (downlink) [NOT IMPLEMENTED YET]
+
+    },
+    "trx": { // a hamlib controlled rig to serve as a transceiver [NOT IMPLEMENTED YET]
+
+    }
+}
 ```
 
 ## Known bugs
