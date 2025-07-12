@@ -5,6 +5,7 @@ CONFIG_DIR = platformdirs.user_config_dir("satgs")
 DATA_DIR = platformdirs.user_data_dir("satgs")
 
 TLE_DIRECTORY_PATH = os.path.join(DATA_DIR, "tle/")
+TRANSPONDERS_DIRECTORY_PATH = os.path.join(DATA_DIR, "transponders/")
 SOURCES_PATH = os.path.join(CONFIG_DIR, "sources.txt")
 LAST_TLE_UPDATE_PATH = os.path.join(DATA_DIR, "last_tle_update.txt")
 

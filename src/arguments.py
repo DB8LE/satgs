@@ -1,4 +1,4 @@
-from src import tle, util, tracking, settings, paths
+from src import tle, util, tracking, settings, paths, transponders
 import argparse, logging
 
 def set_debug():
@@ -34,9 +34,22 @@ def no_args_message(args):
     logging.log(logging.ERROR, "Please provide a subcommand to run. Run `satgs --help` for help.")
     
 
-# TLE subcommand functions
+# update subcommand functions
+def update_all(args):
+    logging.log(logging.INFO, "Updating TLEs..")
+    tle.download_TLEs()
+    logging.log(logging.INFO, "Updating transponders")
+    transponders.download_transponders()
+    logging.log(logging.INFO, "Done!")
+    exit()
+
 def update_TLEs(args):
     tle.download_TLEs()
+    logging.log(logging.INFO, "Done!")
+    exit()
+
+def update_transponders(args):
+    transponders.download_transponders()
     logging.log(logging.INFO, "Done!")
     exit()
 
@@ -103,12 +116,17 @@ def set_up_argparse():
     parser_version = sub_parsers.add_parser("version", help="Show version")
     parser_version.set_defaults(func=show_version)
 
-    # TLE subcommands
-    parser_tle = sub_parsers.add_parser("tle", help="Manage TLEs")
-    tle_sub = parser_tle.add_subparsers(required=True)
+    # update subcommands
+    parser_update = sub_parsers.add_parser("update", help="Update data like TLEs. Can be called without subcommand to update everything")
+    update_sub = parser_update.add_subparsers(required=False)
 
-    parser_tle_update = tle_sub.add_parser("update", help="Update all TLEs")
-    parser_tle_update.set_defaults(func=update_TLEs)
+    parser_update_tle = update_sub.add_parser("tles", help="Update all TLEs")
+    parser_update_tle.set_defaults(func=update_TLEs)
+
+    parser_update_transponders = update_sub.add_parser("transponders", help="Update transponders file")
+    parser_update_transponders.set_defaults(func=update_transponders)
+
+    parser_update.set_defaults(func=update_all)
 
     # sources subcommands
     parser_sources = sub_parsers.add_parser("sources", help="Manage TLE sources")

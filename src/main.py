@@ -16,6 +16,9 @@ def main():
     if not os.path.exists(paths.TLE_DIRECTORY_PATH):
         os.makedirs(paths.TLE_DIRECTORY_PATH, exist_ok=True)
 
+    if not os.path.exists(paths.TRANSPONDERS_DIRECTORY_PATH):
+        os.makedirs(paths.TRANSPONDERS_DIRECTORY_PATH, exist_ok=True)
+
     resources_files = importlib.resources.files().joinpath("resources")
     if not os.path.exists(paths.ROTOR_CONFIG_DIRECTORY_PATH):
         os.makedirs(paths.ROTOR_CONFIG_DIRECTORY_PATH, exist_ok=True)
@@ -46,7 +49,7 @@ def main():
     # Check for TLE age
     TLE_age_human_readable = tle.get_TLE_age_human_readable()
     if TLE_age_human_readable == "never":
-        logging.log(logging.WARN, f"TLEs have never been updated. Update using `satgs tle update` when possible.")
+        logging.log(logging.WARN, f"TLEs have never been updated. Update using `satgs update tles` when possible.")
     else:
         if tle.check_TLEs_outdated():
             logging.log(logging.WARN, f"TLEs are {TLE_age_human_readable} old. Update when possible.")
