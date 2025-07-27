@@ -166,7 +166,7 @@ def download_TLEs(log_progress: bool = True):
 
         # Log progress
         progress_percent = ((i-skipped+1)/total_sources)*100
-        progress_bar = f"[{"="*(round(progress_percent/10))}{" "*(10-round(progress_percent/10))}]"
+        progress_bar = f"[{'='*(round(progress_percent/10))}{' '*(10-round(progress_percent/10))}]"
         logging.log(progress_log_level, f"Updating TLEs... {progress_bar} ({i-skipped+1}/{total_sources})")
         
         # Try to download TLEs

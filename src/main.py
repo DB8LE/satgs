@@ -1,6 +1,6 @@
 from src import custom_logging, arguments, paths, tle
 import logging, os, shutil
-import importlib.resources
+import importlib_resources # backport for pre python 3.12 compatibility
 
 def main():
     # Set up logging
@@ -19,19 +19,19 @@ def main():
     if not os.path.exists(paths.TRANSPONDERS_DIRECTORY_PATH):
         os.makedirs(paths.TRANSPONDERS_DIRECTORY_PATH, exist_ok=True)
 
-    resources_files = importlib.resources.files().joinpath("resources")
+    resources_files = importlib_resources.files().joinpath("resources")
     if not os.path.exists(paths.ROTOR_CONFIG_DIRECTORY_PATH):
         os.makedirs(paths.ROTOR_CONFIG_DIRECTORY_PATH, exist_ok=True)
 
         # Copy default config files
-        with importlib.resources.as_file(resources_files.joinpath("rotors_default")) as dir:
+        with importlib_resources.as_file(resources_files.joinpath("rotors_default")) as dir:
             shutil.copytree(dir, paths.ROTOR_CONFIG_DIRECTORY_PATH, dirs_exist_ok=True)
 
     if not os.path.exists(paths.RADIO_CONFIG_DIRECTORY_PATH):
         os.makedirs(paths.RADIO_CONFIG_DIRECTORY_PATH, exist_ok=True)
 
         # Copy default config files
-        with importlib.resources.as_file(resources_files.joinpath("radios_default")) as dir:
+        with importlib_resources.as_file(resources_files.joinpath("radios_default")) as dir:
             shutil.copytree(dir, paths.RADIO_CONFIG_DIRECTORY_PATH, dirs_exist_ok=True)
 
     # Ensure necessary files exist

@@ -24,9 +24,9 @@ def show_version(args):
 
     import importlib.metadata
     if git_branch != "main":
-        logging.log(logging.INFO, f"You are running satgs v{importlib.metadata.version("satgs")}@{git_branch} ({latest_commit_hash})")
+        logging.log(logging.INFO, f"You are running satgs v{importlib.metadata.version('satgs')}@{git_branch} ({latest_commit_hash})")
     else:
-        logging.log(logging.INFO, f"You are running satgs v{importlib.metadata.version("satgs")}")
+        logging.log(logging.INFO, f"You are running satgs v{importlib.metadata.version('satgs')}")
 
     exit()
 

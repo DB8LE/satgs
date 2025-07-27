@@ -83,7 +83,7 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
     earliest_rise_time = earliest_rise_time.utc_datetime()
 
     # Notify user
-    logging.log(logging.INFO, f"Found next pass at {earliest_rise_time.strftime("%H:%M:%S")} UTC with an initial azimuth of {round(initial_azimuth.degrees)}°") # type: ignore
+    logging.log(logging.INFO, f"Found next pass at {earliest_rise_time.strftime('%H:%M:%S')} UTC with an initial azimuth of {round(initial_azimuth.degrees)}°") # type: ignore
 
     # Initialize rotor
     rotor = None
