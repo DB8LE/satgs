@@ -78,7 +78,7 @@ def remove_source(args):
 # tracking subcommand
 def track(args):
     # just a wrapper to accept the arguments
-    tracking.track(util.satellite_norad_from_input(args.satellite), args.rotor, args.radio, args.usb)
+    tracking.track(util.satellite_norad_from_input(args.satellite), args.rotor, args.radio, args.rotor_usb, args.rx_usb, args.tx_usb, args.trx_usb)
 
 # settings subcommands
 def list_settings(args):
@@ -149,8 +149,14 @@ def set_up_argparse():
                               help="The name of a radio config file (without file extension)")
     parser_track.add_argument("--rotor", type=str, choices=tracking.list_rotors(),
                               help="The name of a rotor config file (without file extension)")
-    parser_track.add_argument("-u", "--usb", type=str,
-                              help="USB port that the rotor is connected to")
+    parser_track.add_argument("-o", "--rotor_usb", type=str,
+                              help="USB port that the rotor is connected to (optional)")
+    parser_track.add_argument("-r", "--rx_usb", type=str,
+                              help="USB port that the receiver is connected to (optional)")
+    parser_track.add_argument("-t", "--tx_usb", type=str,
+                              help="USB port that the transmitter is connected to (optional)")
+    parser_track.add_argument("-x", "--trx_usb", type=str,
+                              help="USB port that the transceiver is connected to (optional)")
     parser_track.set_defaults(func=track)
 
     # settings subcommands

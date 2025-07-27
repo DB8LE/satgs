@@ -20,7 +20,7 @@ def list_radios() -> List[str]:
 
     return files_no_extension
 
-def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name: str | None = None, usb_overwrite: str | None = None):
+def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name: str | None = None, rotor_usb_overwrite: str | None = None, rx_usb_overwrite: str | None = None, tx_usb_overwrite: str | None = None, trx_usb_overwrite: str | None = None):
     if rotor_config_name == None and radio_config_name == None:
         logging.log(logging.ERROR, "Must provide either a radio config, rotor config or both. Not none.")
         exit()
@@ -88,12 +88,12 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
     # Initialize rotor
     rotor = None
     if rotor_config_name:
-        rotor = rotor_controller.Rotor_Controller(rotor_config_name, usb_overwrite)
+        rotor = rotor_controller.Rotor_Controller(rotor_config_name, rotor_usb_overwrite)
     
     # Initialize radio
     radio = None
     if radio_config_name:
-        radio = radio_controller.Radio_Controller(radio_config_name, downlink_start, uplink_start)
+        radio = radio_controller.Radio_Controller(radio_config_name, downlink_start, uplink_start, rx_usb_overwrite, tx_usb_overwrite, trx_usb_overwrite)
 
     logging.log(logging.INFO, "Ready to start")
 
@@ -176,8 +176,13 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
 
         # Shut down rotor socket & rotctld
         if rotor:
+            rotor.sock.close()
             rotor.rotctld.terminate()
-            rotor.sock.close() # type: ignore
+
+        if radio:
+            if radio.rx_sock:
+                radio.rx_sock.close()
+                radio.rx_rigctld.terminate()
 
     # Finished
     logging.log(logging.INFO, "Pass completed!")

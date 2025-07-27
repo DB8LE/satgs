@@ -69,7 +69,7 @@ class Rotor_Controller():
                 logging.log(logging.ERROR, "Error: "+str(stderr))
                 if stderr == "rot_open: error = IO error":
                     logging.log(logging.INFO, "Tip: Make sure you have the correct USB port selected." \
-                                              "You can overwrite the USB port in the config file using --usb.")
+                                              "You can overwrite the USB port in the config file using -o")
                 exit()
             if self.rotctld == None:
                 logging.log(logging.ERROR, "Rotctld failed to start.")

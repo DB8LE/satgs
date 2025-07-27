@@ -65,8 +65,10 @@ There are multiple radio types you can configure. You can define any combination
         "rigctl_port": 4532 // port of the rigctl server
     },
     "rx": { // a hamlib controlled rig to serve as a receiver (downlink)
-        "rigctl_ID": 123 // rigctl id of your receiver
-                         // to find this, run `rigctl --list`
+        "usb_port": "/dev/ttyUSB0",
+        "rigctl_ID": 123, // rigctl id of your receiver
+                          // to find this, run `rigctl --list`
+        "serial_speed": 38400 // serial speed of the connection
     },
     "tx": { // a hamlib controlled rig to serve as a transmitter (uplink) [NOT IMPLEMENTED YET]
 
