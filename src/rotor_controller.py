@@ -65,15 +65,15 @@ class Rotor_Controller():
         try:
             stdout, stderr = self.rotctld.communicate(timeout=1)
             if self.rotctld.returncode != 0:
-                logging.log(logging.ERROR, "Rigctld failed with error code "+str(self.rotctld.returncode))
+                logging.log(logging.ERROR, "Rotctld failed with error code "+str(self.rotctld.returncode))
                 logging.log(logging.ERROR, "Error: "+str(stderr))
                 if stderr == "rot_open: error = IO error":
                     logging.log(logging.INFO, "Tip: Make sure you have the correct USB port selected." \
                                               "You can overwrite the USB port in the config file using --usb.")
                 exit()
             if self.rotctld == None:
-                logging.log(logging.ERROR, "Rigctld failed to start.")
-        except subprocess.TimeoutExpired: # Rigctld is running
+                logging.log(logging.ERROR, "Rotctld failed to start.")
+        except subprocess.TimeoutExpired: # Rotctld is running
             pass
 
         logging.log(logging.DEBUG, "Opening socket to rotctld")
