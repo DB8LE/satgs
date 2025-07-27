@@ -37,9 +37,7 @@ Note 2: Support for rotors that communicate with rotctl over anything other than
     "usb_port": "/dev/ttyUSB0", // usb port that the rotor is connected to
                                 // this can be overwritten with the -u or --usb command line argument
     "rotctl_ID": 123, // rotctl id of your rotor
-                     // to find this, run `rotctl --list`
-    "rotctld_port": 4533, // port for rotctld. Make sure this doesn't share a port with any
-                          // rigctld instances.
+                      // to find this, run `rotctl --list`
     "min_az": 1, // minimum azimuth that the rotor is capable of
     "max_az": 359, // maximum azimuth that the rotor is capable of
     "min_el": 2, // minimum elevation that the rotor is capable of
@@ -64,12 +62,13 @@ There are multiple radio types you can configure. You can define any combination
 ```json
 {
     "sdr": { // a connection to a rigctl server like the one in SDR++ to serve as a receiver (downlink)
-        "rigctl_port": 4532
+        "rigctl_port": 4532 // port of the rigctl server
+    },
+    "rx": { // a hamlib controlled rig to serve as a receiver (downlink)
+        "rigctl_ID": 123 // rigctl id of your receiver
+                         // to find this, run `rigctl --list`
     },
     "tx": { // a hamlib controlled rig to serve as a transmitter (uplink) [NOT IMPLEMENTED YET]
-
-    },
-    "rx": { // a hamlib controlled rig to serve as a receiver (downlink) [NOT IMPLEMENTED YET]
 
     },
     "trx": { // a hamlib controlled rig to serve as a transceiver [NOT IMPLEMENTED YET]

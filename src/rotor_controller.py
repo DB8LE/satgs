@@ -1,8 +1,8 @@
-from src import paths
+from src import paths, util
 from typing import Dict
 import subprocess, os, json, logging, socket
 
-ROTOR_CONF_EXPECTED_KEYS = ["usb_port", "rotctl_ID", "rotctld_port", "min_az", "max_az", "min_el", "max_el", "control_type"]
+ROTOR_CONF_EXPECTED_KEYS = ["usb_port", "rotctl_ID", "min_az", "max_az", "min_el", "max_el", "control_type"]
 
 def parse_rotor_config(rotor_config_name: str) -> Dict[str, str | int]:
     """
@@ -41,7 +41,7 @@ class Rotor_Controller():
 
         self.usb_port = str(rotor_config["usb_port"])
         self.rotctl_ID = str(rotor_config["rotctl_ID"])
-        self.rotctld_port = int(rotor_config["rotctld_port"])
+        self.rotctld_port = util.get_unused_port("rotctld")
         self.min_az = int(rotor_config["min_az"])
         self.max_az = int(rotor_config["max_az"])
         self.min_el = int(rotor_config["min_el"])

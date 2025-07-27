@@ -1,5 +1,7 @@
 from src import tle, paths
-import os, datetime, re, logging, shutil
+import os, datetime, re, logging, shutil, socket
+
+last_port = 56000
 
 COSPAR_ID_REGEX = re.compile(r'^[0-9]{4}-[0-9]{3}[A-Z]{1,3}$')
 
@@ -20,6 +22,27 @@ def decorated_input() -> str:
     decorator_string = f"[{time}] (I) >> "
 
     return input(decorator_string)
+
+def _check_port_used(port: int) -> bool:
+    """A function to check if a port is in use"""
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+    
+def get_unused_port(purpose: str = "N/A") -> int:
+    """
+    Get an unused port. Optionally provide the purpose for the port for logging.
+    """
+    global last_port
+    
+    while True:
+        last_port += 1
+
+        if _check_port_used(last_port):
+            logging.log(logging.DEBUG, f"Port {last_port} is in use")
+        else:
+            logging.log(logging.DEBUG, f"Using port {last_port} for {purpose}")
+            return last_port
 
 def satellite_norad_from_input(input: str) -> str:
     """
