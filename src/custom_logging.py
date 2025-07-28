@@ -1,5 +1,5 @@
 from src import util
-import logging, os, sys
+import logging, sys
 
 class CustomFormatter(logging.Formatter):
     # A custom logging formatter

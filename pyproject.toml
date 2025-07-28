@@ -11,7 +11,8 @@ dependencies = [
     "platformdirs (>=4.3.8,<5.0.0)",
     "requests (>=2.32.4,<3.0.0)",
     "skyfield (>=1.53,<2.0)",
-    "importlib-resources (>=6.5.2,<7.0.0)"
+    "importlib-resources (>=6.5.2,<7.0.0)",
+    "numpy (>=2.1.0)"
 ]
 
 [tool.poetry]
@@ -31,4 +32,4 @@ ruff = "^0.12.5"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
-ignore = ["I001", "E401", "E501"]
+ignore = ["I001", "E401", "E501", "E701"]

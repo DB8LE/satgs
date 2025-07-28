@@ -38,12 +38,12 @@ def check_source(source_url: str, print_failure_reason: bool = True) -> bool:
         return False
     
     # Check if required fields are present
-    if type(json_data) == list: # Multiple TLEs
+    if type(json_data) is list: # Multiple TLEs
         for TLE in json_data:
             if EXPECTED_TLE_JSON_KEYS != list(TLE.keys()):
                 logging.log(level, "TLE source failed check: Invalid JSON keys.")
                 return False
-    elif type(json_data) == dict: # Single TLE
+    elif type(json_data) is dict: # Single TLE
         if EXPECTED_TLE_JSON_KEYS != list(json_data.keys()):
             logging.log(level, "TLE source failed check: Invalid JSON keys.")
             return False
@@ -62,12 +62,12 @@ def add_source(source_url: str):
     """
 
     # Check if source provides valid data
-    if check_source(source_url) == False:
+    if not check_source(source_url):
         logging.log(logging.WARN, "TLE source didn't provide valid data. Not adding source.")
         return
 
     # Ensure newline at the end of each line
-    if source_url.endswith("\n") == False:
+    if not source_url.endswith("\n"):
         source_url += "\n"
 
     # Append to file
@@ -189,10 +189,10 @@ def download_TLEs(log_progress: bool = True):
             continue
         
         # Check if source provided a single or multiple TLEs
-        if type(TLE_json_data) == list: # multiple
+        if type(TLE_json_data) is list: # multiple
             for TLE in TLE_json_data:
                 _process_TLE(TLE, source)
-        elif type(TLE_json_data) == dict: # single
+        elif type(TLE_json_data) is dict: # single
             _process_TLE(TLE_json_data, source)
         else:
             logging.log(logging.WARN, f"Failed to download TLEs from source {source}. Source provided data that caused an invalid data type after parsing. Skipping this source.")

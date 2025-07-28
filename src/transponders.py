@@ -13,7 +13,7 @@ def download_transponders():
     try:
         request = requests.get(SATNOGS_TRANSITTERS_API_URL, params={"format": "json"})
     except Exception as e:
-        logging.log(logging.ERROR, f"Failed to download transponder data.")
+        logging.log(logging.ERROR, "Failed to download transponder data.")
         logging.log(logging.ERROR, e)
         exit()
 
@@ -26,14 +26,13 @@ def download_transponders():
     try:
         json_data = json.loads(request.text)
     except json.JSONDecodeError:
-        logging.log(logging.ERROR, f"Failed to download transponder data. API returned invalid JSON.")
+        logging.log(logging.ERROR, "Failed to download transponder data. API returned invalid JSON.")
         exit()
     
     # Sort transponders to a per NORAD ID dict
     transponders = {}
     for trsp in json_data:
         try: # If satellite already exists in formatted transponder list, just add the current transponder to the dict indexed by its uuid
-            current_trsp = transponders[trsp["norad_cat_id"]]
             transponders[trsp["norad_cat_id"]][trsp["uuid"]] = trsp
         except KeyError: # If it doesn't exist yet, create the satellites entry and set it to a dict containing the current transponder indexed by it's uuid
             transponders[trsp["norad_cat_id"]] = {trsp["uuid"]: trsp}

@@ -1,6 +1,5 @@
 from src import radio_controller, rotor_controller, tle, paths, settings, transponders
 from skyfield.api import load, wgs84
-from skyfield.units import Velocity
 from typing import List
 import logging, os, datetime, time
 
@@ -21,7 +20,7 @@ def list_radios() -> List[str]:
     return files_no_extension
 
 def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name: str | None = None, rotor_usb_overwrite: str | None = None, rx_usb_overwrite: str | None = None, tx_usb_overwrite: str | None = None, trx_usb_overwrite: str | None = None):
-    if rotor_config_name == None and radio_config_name == None:
+    if rotor_config_name is None and radio_config_name is None:
         logging.log(logging.ERROR, "Must provide either a radio config, rotor config or both. Not none.")
         exit()
 
@@ -36,11 +35,11 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
 
     # Try to load TLE
     satellite = tle.load_tle(NORAD_ID, timescale)
-    if satellite == None:
+    if satellite is None:
         logging.log(logging.ERROR, "Failed to load TLE for NORAD "+NORAD_ID+". Not found in local files.")
         exit()
     else:
-        if satellite.name == None:
+        if satellite.name is None:
             logging.log(logging.WARN, "Successfully loaded TLE for satellite with NORAD ID "+NORAD_ID+", but satellite name was None.")
         else:
             logging.log(logging.INFO, "Successfully loaded TLE for satellite '"+satellite.name+"'")

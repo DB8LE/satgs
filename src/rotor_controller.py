@@ -19,7 +19,7 @@ def parse_rotor_config(rotor_config_name: str) -> Dict[str, str | int]:
         logging.log(logging.ERROR, e)
         exit()
 
-    if type(json_data) != dict:
+    if type(json_data) is not dict:
         logging.log(logging.ERROR, "Failed parsing file rotor config file '"+rotor_config_name+".json'. JSON data parsed to invalid data type.")
         exit()
 
@@ -71,7 +71,7 @@ class Rotor_Controller():
                     logging.log(logging.INFO, "Tip: Make sure you have the correct USB port selected." \
                                               "You can overwrite the USB port in the config file using -o")
                 exit()
-            if self.rotctld == None:
+            if self.rotctld is None:
                 logging.log(logging.ERROR, "Rotctld failed to start.")
         except subprocess.TimeoutExpired: # Rotctld is running
             pass

@@ -22,7 +22,7 @@ def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]
         exit()
 
     # Checks to see if data is valid
-    if type(json_data) != dict:
+    if type(json_data) is not dict:
         logging.log(logging.ERROR, "Failed parsing file radio config file '"+radio_config_name+".json'. JSON data parsed to invalid data type.")
         exit()
 
@@ -42,7 +42,7 @@ def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]
 
     # TODO: Other types
 
-    if valid_radio_type_defined == False:
+    if not valid_radio_type_defined:
         logging.log(logging.ERROR, "Failed parsing file radio config file '"+radio_config_name+".json'. Couldn't find any valid radio types defined.")
 
     return json_data
@@ -63,10 +63,10 @@ class Radio_Controller():
         # Parse config
         radio_config = parse_radio_config(radio_config_name)
 
-        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency == None: # Warn user if a receiver has been defined but no downlink freq was provided
+        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency is None: # Warn user if a receiver has been defined but no downlink freq was provided
             logging.log(logging.WARN, "Receiver/Transceiver/SDR is defined in the configuration but no uplink frequency was provided. Receivers will be ignored.")
 
-        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency == None: # Warn user if a transmitter has been defined but no uplink freq was provided
+        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency is None: # Warn user if a transmitter has been defined but no uplink freq was provided
             logging.log(logging.WARN, "Transmitter/Transceiver is defined in the configuration but no uplink frequency was provided. Transmitters will be ignored.")
 
         # Initialize SDR if present in config
@@ -109,7 +109,7 @@ class Radio_Controller():
                         logging.log(logging.INFO, "Tip: Make sure you have the correct USB port selected." \
                                                   "You can overwrite the USB port in the config file using -r")
                     exit()
-                if self.rx_rigctld == None:
+                if self.rx_rigctld is None:
                     logging.log(logging.ERROR, "Rigctld failed to start.")
             except subprocess.TimeoutExpired: # Rigctld is running
                 pass
@@ -159,8 +159,8 @@ class Radio_Controller():
         # Handle uplink
         if self.uplink_freq:
             # Calulate corrected frequency
-            self.corrected_uplink = -(float(range_rate.km_per_s) / 299792.458) * uplink_start # type: ignore
-            self.corrected_uplink += self.downlink_freq
+            self.corrected_uplink = -(float(range_rate.km_per_s) / 299792.458) * self.uplink_freq # type: ignore
+            self.corrected_uplink += self.uplink_freq
 
             # Update uplink listeners
             # ..
