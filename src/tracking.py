@@ -116,9 +116,9 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
                 logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass/60)} min)")
             else:
                 logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass)}s)")
-            #time.sleep(seconds_until_pass-10)
+            time.sleep(seconds_until_pass-10)
             logging.log(logging.INFO, "Pass starting in 10 seconds!")
-            #time.sleep(10)
+            time.sleep(10)
         else:
             logging.log(logging.INFO, f"Pass starting in {round(seconds_until_pass)} seconds!")
             time.sleep(seconds_until_pass)
