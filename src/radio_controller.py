@@ -4,6 +4,7 @@ import subprocess, os, json, logging, socket
 
 RADIO_SDR_CONF_EXPECTED_KEYS = ["rigctl_port"]
 RADIO_RX_CONF_EXPECTED_KEYS = ["usb_port", "rigctl_ID", "serial_speed", "offset"]
+RADIO_TX_CONF_EXPECTED_KEYS = RADIO_RX_CONF_EXPECTED_KEYS
 
 def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]]:
     """
@@ -39,8 +40,14 @@ def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]
             logging.log(logging.ERROR, "Failed parsing file radio config file '"+radio_config_name+".json'. Invalid keys present in RX section of config file.")
             exit()
         valid_radio_type_defined = True
+    
+    if "tx" in json_data:
+        if list(json_data["tx"].keys()) != RADIO_TX_CONF_EXPECTED_KEYS:
+            logging.log(logging.ERROR, "Failed parsing file radio config file '"+radio_config_name+".json'. Invalid keys present in TX section of config file.")
+            exit()
+        valid_radio_type_defined = True
 
-    # TODO: Other types
+    # TODO: transceiver
 
     if not valid_radio_type_defined:
         logging.log(logging.ERROR, "Failed parsing file radio config file '"+radio_config_name+".json'. Couldn't find any valid radio types defined.")
@@ -63,11 +70,16 @@ class Radio_Controller():
         # Parse config
         radio_config = parse_radio_config(radio_config_name)
 
-        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency is None: # Warn user if a receiver has been defined but no downlink freq was provided
-            logging.log(logging.WARN, "Receiver/Transceiver/SDR is defined in the configuration but no uplink frequency was provided. Receivers will be ignored.")
+        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency is None: # Warn user if a receiver has been defined but no uplink freq was provided
+            logging.log(logging.WARN, "Transmitter/Transceiver/SDR is defined in the configuration but no uplink frequency was provided. Transmitters will be ignored.")
 
-        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency is None: # Warn user if a transmitter has been defined but no uplink freq was provided
-            logging.log(logging.WARN, "Transmitter/Transceiver is defined in the configuration but no uplink frequency was provided. Transmitters will be ignored.")
+        if (("rx" in radio_config) or ("trx" in radio_config)) and downlink_frequency is None: # Warn user if a transmitter has been defined but no downlink freq was provided
+            logging.log(logging.WARN, "Receiver/Transceiver is defined in the configuration but no downlink frequency was provided. Receivers will be ignored.")
+
+        if ("tx" in radio_config) and ("rx" in radio_config):
+            if radio_config["tx"]["usb_port"] == radio_config["rx"]["usb_port"]:
+                logging.log(logging.ERROR, "Defined transmitter and receiver can't be the same device! Try defining a transceiver instead.")
+                exit()
 
         # Initialize SDR if present in config
         if "sdr" in radio_config:
@@ -98,12 +110,12 @@ class Radio_Controller():
             try:
                 self.rx_serial_speed = int(self.rx_serial_speed)
             except ValueError:
-                logging.log(logging.ERROR, f"Configured serial speed '{self.rx_serial_speed}' is not a valid integer.")
+                logging.log(logging.ERROR, f"Configured receiver serial speed '{self.rx_serial_speed}' is not a valid integer.")
                 exit()
             try:
                 self.rx_offset = int(self.rx_offset)
             except ValueError:
-                logging.log(logging.ERROR, f"Configured offset '{self.rx_offset}' is not a valid integer.")
+                logging.log(logging.ERROR, f"Configured receiver offset '{self.rx_offset}' is not a valid integer.")
                 exit()
 
             # Attempt to start rigctld
@@ -131,7 +143,7 @@ class Radio_Controller():
 
             # Open socket to rigctld
             try:
-                logging.log(logging.DEBUG, "Opening socket to rigctl (RX)")
+                logging.log(logging.DEBUG, "Opening socket to rigctl (receiver)")
                 self.rx_sock = socket.create_connection(("localhost", int(self.rx_rigctld_port)), timeout=3)
             except Exception as e:
                 logging.log(logging.ERROR, "Failed to open connection to receiver rigctl server. Skipping this radio.")
@@ -139,6 +151,63 @@ class Radio_Controller():
                 self.rx_sock = None
         else:
             self.rx_sock = None
+
+        # Initialize transmitter in config (this is the same as the receiver part)
+        if "tx" in radio_config:
+            tx_config = radio_config["tx"]
+            self.tx_usb_port = tx_usb_overwrite if tx_usb_overwrite else tx_config["usb_port"]
+            self.tx_rigctl_ID = tx_config["rigctl_ID"]
+            self.tx_serial_speed = tx_config["serial_speed"]
+            self.tx_offset = tx_config["offset"]
+            self.tx_rigctld_port = util.get_unused_port("rigctld (transmitter)")
+
+            # Check if offset and speed are ints
+            try:
+                self.tx_serial_speed = int(self.tx_serial_speed)
+            except ValueError:
+                logging.log(logging.ERROR, f"Configured transmitter serial speed '{self.tx_serial_speed}' is not a valid integer.")
+                exit()
+            try:
+                self.tx_offset = int(self.tx_offset)
+            except ValueError:
+                logging.log(logging.ERROR, f"Configured transmitter offset '{self.tx_offset}' is not a valid integer.")
+                exit()
+
+            # Attempt to start rigctld
+            logging.log(logging.INFO, "Starting rigctld (transmitter)")
+            self.tx_rigctld = subprocess.Popen(
+                ["rigctld", "-m", str(self.tx_rigctl_ID), "-r", str(self.tx_usb_port), "-t", str(self.tx_rigctld_port), "-s", str(self.tx_serial_speed)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+
+            try:
+                stdout, stderr = self.tx_rigctld.communicate(timeout=1)
+                if self.tx_rigctld.returncode != 0:
+                    logging.log(logging.ERROR, "Rigctld failed with error code "+str(self.tx_rigctld.returncode))
+                    logging.log(logging.ERROR, "Error: "+str(stderr))
+                    if stderr == "rig_open: error = IO error":
+                        logging.log(logging.INFO, "Tip: Make sure you have the correct USB port selected." \
+                                                  "You can overwrite the USB port in the config file using -t")
+                    exit()
+                if self.tx_rigctld is None:
+                    logging.log(logging.ERROR, "Rigctld failed to start.")
+            except subprocess.TimeoutExpired: # Rigctld is running
+                pass
+
+            # Open socket to rigctld
+            try:
+                logging.log(logging.DEBUG, "Opening socket to rigctl (transmitter)")
+                self.tx_sock = socket.create_connection(("localhost", int(self.tx_rigctld_port)), timeout=3)
+            except Exception as e:
+                logging.log(logging.ERROR, "Failed to open connection to transmitter rigctl server. Skipping this radio.")
+                logging.log(logging.ERROR, e)
+                self.tx_sock = None
+        else:
+            self.tx_sock = None
+
+        # TODO: transceiver
 
     def _send_rigctl_command(self, sock: socket.socket, cmd: str):
         """
@@ -174,7 +243,7 @@ class Radio_Controller():
                 self.set_frequency(self.sdr_sock, self.corrected_downlink) # type: ignore
 
             if self.rx_sock:
-                self.set_frequency(self.rx_sock, self.corrected_downlink+self.rx_offset) # type: ignore
+                self.set_frequency(self.rx_sock, round(self.corrected_downlink)+self.rx_offset) # type: ignore
 
         # Handle uplink
         if self.uplink_freq:
@@ -183,7 +252,10 @@ class Radio_Controller():
             self.corrected_uplink += self.uplink_freq
 
             # Update uplink listeners
-            # ..
+            if self.tx_sock:
+                print(type(self.corrected_uplink))
+                print(type(self.tx_offset))
+                self.set_frequency(self.tx_sock, round(self.corrected_uplink)+self.tx_offset) # type: ignore
 
     def close(self):
         """Close all sockets and terminate rigctl instances"""
@@ -195,3 +267,7 @@ class Radio_Controller():
         if self.rx_sock:
             self.rx_sock.close()
             self.rx_rigctld.terminate()
+
+        if self.tx_sock:
+            self.tx_sock.close()
+            self.tx_rigctld.terminate()
