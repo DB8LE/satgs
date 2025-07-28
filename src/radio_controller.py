@@ -156,6 +156,9 @@ class Radio_Controller():
             if self.sdr_sock:
                 self.set_frequency(self.sdr_sock, self.corrected_downlink) # type: ignore
 
+            if self.rx_sock:
+                self.set_frequency(self.rx_sock, self.corrected_downlink) # type: ignore
+
         # Handle uplink
         if self.uplink_freq:
             # Calulate corrected frequency
