@@ -1,7 +1,7 @@
 from src import radio_controller, rotor_controller, tle, paths, settings, transponders
 from skyfield.api import load, wgs84
 from typing import List
-import logging, os, datetime, time
+import logging, os, datetime, time, traceback
 
 TRACKING_UPDATE_INTERVAL = float(settings.get_setting("tracking_update_interval")) # Tracking update interval in seconds
 
@@ -177,6 +177,8 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
         else:
             logging.log(logging.ERROR, "Caught exception, shutting down subprocesses")
             logging.log(logging.ERROR, e)
+            if logging.getLogger().level == logging.DEBUG:
+                logging.log(logging.DEBUG, traceback.format_exc())
     finally:
         # Close sockets and rxxctlds
         if rotor:

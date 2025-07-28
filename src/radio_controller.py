@@ -133,7 +133,7 @@ class Radio_Controller():
         """
         logging.log(logging.DEBUG, f"Sending rigctl command '{cmd}'")
         sock.sendall((cmd + '\n').encode('ascii'))
-        response = sock.recv(4096).decode('ascii')
+        response = sock.recv(4096).decode('ascii') # if this line fails its probably a config error
     
         # multiple lines, strip trailing newline
         return [line.strip() for line in response.splitlines()]
