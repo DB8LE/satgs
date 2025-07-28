@@ -3,7 +3,7 @@ from typing import Dict
 import subprocess, os, json, logging, socket
 
 RADIO_SDR_CONF_EXPECTED_KEYS = ["rigctl_port"]
-RADIO_RX_CONF_EXPECTED_KEYS = ["usb_port", "rigctl_ID", "serial_speed"]
+RADIO_RX_CONF_EXPECTED_KEYS = ["usb_port", "rigctl_ID", "serial_speed", "offset"]
 
 def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]]:
     """
@@ -91,7 +91,20 @@ class Radio_Controller():
             self.rx_usb_port = rx_usb_overwrite if rx_usb_overwrite else rx_config["usb_port"]
             self.rx_rigctl_ID = rx_config["rigctl_ID"]
             self.rx_serial_speed = rx_config["serial_speed"]
+            self.rx_offset = rx_config["offset"]
             self.rx_rigctld_port = util.get_unused_port("rigctld (receiver)")
+
+            # Check if offset and speed are ints
+            try:
+                self.rx_serial_speed = int(self.rx_serial_speed)
+            except ValueError:
+                logging.log(logging.ERROR, f"Configured serial speed '{self.rx_serial_speed}' is not a valid integer.")
+                exit()
+            try:
+                self.rx_offset = int(self.rx_offset)
+            except ValueError:
+                logging.log(logging.ERROR, f"Configured offset '{self.rx_offset}' is not a valid integer.")
+                exit()
 
             # Attempt to start rigctld
             logging.log(logging.INFO, "Starting rigctld (receiver)")
@@ -161,7 +174,7 @@ class Radio_Controller():
                 self.set_frequency(self.sdr_sock, self.corrected_downlink) # type: ignore
 
             if self.rx_sock:
-                self.set_frequency(self.rx_sock, self.corrected_downlink) # type: ignore
+                self.set_frequency(self.rx_sock, self.corrected_downlink+self.rx_offset) # type: ignore
 
         # Handle uplink
         if self.uplink_freq:
