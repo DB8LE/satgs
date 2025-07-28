@@ -82,6 +82,8 @@ class Radio_Controller():
                 logging.log(logging.ERROR, "Failed to open connection to SDR rigctl server. Skipping this radio.")
                 logging.log(logging.ERROR, e)
                 self.sdr_sock = None
+        else:
+            self.sdr_sock = None
 
         # Initialize receiver in config
         if "rx" in radio_config:
@@ -122,6 +124,8 @@ class Radio_Controller():
                 logging.log(logging.ERROR, "Failed to open connection to receiver rigctl server. Skipping this radio.")
                 logging.log(logging.ERROR, e)
                 self.rx_sock = None
+        else:
+            self.rx_sock = None
 
     def _send_rigctl_command(self, sock: socket.socket, cmd: str):
         """
@@ -167,3 +171,14 @@ class Radio_Controller():
 
             # Update uplink listeners
             # ..
+
+    def close(self):
+        """Close all sockets and terminate rigctl instances"""
+        logging.log(logging.DEBUG, "Closing radio controller")
+
+        if self.sdr_sock:
+            self.sdr_sock.close()
+        
+        if self.rx_sock:
+            self.rx_sock.close()
+            self.rx_rigctld.terminate()

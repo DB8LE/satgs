@@ -121,3 +121,11 @@ class Rotor_Controller():
         self.update_current_position()
 
         self.rotate_to(new_azimuth, new_elevation)
+
+    def close(self):
+        """Close socket and terminate rotctl instance"""
+        logging.log(logging.DEBUG, "Closing rotor controller")
+
+        self.sock.close()
+        self.rotctld.terminate()
+

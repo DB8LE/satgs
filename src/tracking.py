@@ -109,16 +109,16 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
         # Wait for pass to start
         utc_now = datetime.datetime.now(datetime.timezone.utc)
         time_until_pass = earliest_rise_time - utc_now
-        seconds_until_pass = time_until_pass.total_seconds()
+        seconds_until_pass = time_until_pass.total_seconds() + 2 # add 2 seconds to make sure satellite is actually above horizon
 
         if seconds_until_pass > 10:
             if seconds_until_pass > 60:
                 logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass/60)} min)")
             else:
                 logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass)}s)")
-            time.sleep(seconds_until_pass-10)
+            #time.sleep(seconds_until_pass-10)
             logging.log(logging.INFO, "Pass starting in 10 seconds!")
-            time.sleep(10)
+            #time.sleep(10)
         else:
             logging.log(logging.INFO, f"Pass starting in {round(seconds_until_pass)} seconds!")
             time.sleep(seconds_until_pass)
@@ -127,14 +127,19 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
             utc_now = datetime.datetime.now(datetime.timezone.utc)
             pos = (satellite - station_location).at(timescale.from_datetime(utc_now))
 
+            # Calculate current satellite position
+            elevation, azimuth, _ = pos.altaz()
+            azimuth = round(azimuth.degrees) # type: ignore
+            elevation = round(elevation.degrees) # type: ignore
+
+            if elevation <= 0: # Check if pass is done
+                logging.log(logging.INFO, "Pass completed!")
+
+                break
+
             # Handle rotor
             rotor_status_msg = ""
             if rotor:
-                # Calculate current satellite position
-                elevation, azimuth, _ = pos.altaz()
-                azimuth = round(azimuth.degrees) # type: ignore
-                elevation = round(elevation.degrees) # type: ignore
-
                 # Update rotor position
                 rotor.update(round(azimuth), round(elevation)) # type: ignore
 
@@ -172,21 +177,10 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
         else:
             logging.log(logging.ERROR, "Caught exception, shutting down subprocesses")
             logging.log(logging.ERROR, e)
-
-        # Shut down rotor socket & rotctld
+    finally:
+        # Close sockets and rxxctlds
         if rotor:
-            rotor.sock.close()
-            rotor.rotctld.terminate()
+            rotor.close()
 
         if radio:
-            if radio.rx_sock:
-                radio.rx_sock.close()
-                radio.rx_rigctld.terminate()
-
-    # Finished
-    logging.log(logging.INFO, "Pass completed!")
-
-    # Close sockets and rxxctlds
-    if rotor:
-        rotor.rotctld.terminate()
-        rotor.sock.close()
+            radio.close()
