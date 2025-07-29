@@ -19,7 +19,14 @@ def list_radios() -> List[str]:
 
     return files_no_extension
 
-def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name: str | None = None, rotor_usb_overwrite: str | None = None, rx_usb_overwrite: str | None = None, tx_usb_overwrite: str | None = None, trx_usb_overwrite: str | None = None):
+def track(NORAD_ID: str, 
+          rotor_config_name: str | None = None,
+          radio_config_name: str | None = None,
+          rotor_usb_overwrite: str | None = None,
+          rx_usb_overwrite: str | None = None,
+          tx_usb_overwrite: str | None = None,
+          trx_usb_overwrite: str | None = None,
+          lock_up_down: bool = True):
     if rotor_config_name is None and radio_config_name is None:
         logging.log(logging.ERROR, "Must provide either a radio config, rotor config or both. Not none.")
         exit()
@@ -47,11 +54,12 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
     # If radio is defined, prompt user to select transponder
     downlink_start = None
     uplink_start = None
+    inverting = False
     if radio_config_name:
         logging.log(logging.INFO, "Please select which transponder the radio(s) should track:")
         transponder_UUID = transponders.user_transponder_selection(NORAD_ID)
         transponder_frequencies = transponders.get_transponder_frequencies(NORAD_ID, transponder_UUID)
-        downlink_lower, downlink_upper, uplink_lower, uplink_upper = transponder_frequencies
+        downlink_lower, downlink_upper, uplink_lower, uplink_upper, inverting = transponder_frequencies
 
         # Set starting frequency to middle of upper and lower downlink frequency if an upper frequency is given
         downlink_start = downlink_lower
@@ -92,7 +100,7 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
     # Initialize radio
     radio = None
     if radio_config_name:
-        radio = radio_controller.Radio_Controller(radio_config_name, downlink_start, uplink_start, rx_usb_overwrite, tx_usb_overwrite, trx_usb_overwrite)
+        radio = radio_controller.Radio_Controller(radio_config_name, downlink_start, uplink_start, rx_usb_overwrite, tx_usb_overwrite, trx_usb_overwrite, inverting, lock_up_down)
 
     logging.log(logging.INFO, "Ready to start")
 
@@ -122,6 +130,13 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
         else:
             logging.log(logging.INFO, f"Pass starting in {round(seconds_until_pass)} seconds!")
             time.sleep(seconds_until_pass)
+
+        # Update frequency once before starting
+        if radio:
+            utc_now = datetime.datetime.now(datetime.timezone.utc)
+            pos = (satellite - station_location).at(timescale.from_datetime(utc_now))
+            _, _, _, _, _, range_rate = pos.frame_latlon_and_rates(station_location)
+            radio.update(range_rate) # type: ignore
 
         while True:
             utc_now = datetime.datetime.now(datetime.timezone.utc)
@@ -153,6 +168,7 @@ def track(NORAD_ID: str, rotor_config_name: str | None = None, radio_config_name
                 _, _, _, _, _, range_rate = pos.frame_latlon_and_rates(station_location)
             
                 # Update frequencies
+                radio.update_lock()
                 radio.update(range_rate) # type: ignore
 
                 # Prepare status message

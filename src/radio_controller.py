@@ -55,14 +55,17 @@ def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]
     return json_data
 
 class Radio_Controller():
-    def __init__(self, radio_config_name: str, downlink_frequency: int | None, uplink_frequency: int | None, rx_usb_overwrite: str | None, tx_usb_overwrite: str | None, trx_usb_overwrite: str | None) -> None:
+    def __init__(self, radio_config_name: str, downlink_frequency: int | None, uplink_frequency: int | None, rx_usb_overwrite: str | None, tx_usb_overwrite: str | None, trx_usb_overwrite: str | None, inverting: bool = False, lock: bool = True) -> None:
         """
-        Initialize radio object. Must provide the name of the radio config file to be read (without the file extension),
-        and optionally the downlink and uplink frequency of the satellite transponder.
+        Initialize radio object. Must provide the name of the radio config file to be read (without the file extension).
+        Optionally the downlink and uplink frequency of the satellite transponder, if it is inverting, USB port overwrites and wether to lock downlink and uplink together can be provided.
         """
         
         self.downlink_freq = downlink_frequency
         self.uplink_freq = uplink_frequency
+
+        self.lock = lock
+        self.inversion_multi = -1 if inverting else 1 # A multiplier to be applied to an offset if the transponder is inverting
 
         self.corrected_downlink = None
         self.corrected_uplink = None
@@ -209,23 +212,114 @@ class Radio_Controller():
 
         # TODO: transceiver
 
+        self.downlink_correction = 0 # Doppler correction factor in hz 
+        self.uplink_correction = 0
+        self.current_downlink_frequency = downlink_frequency if downlink_frequency is not None else 0 # Frequency that the doppler correction will be applied to
+        self.current_uplink_frequency = uplink_frequency if uplink_frequency is not None else 0
+
     def _send_rigctl_command(self, sock: socket.socket, cmd: str):
         """
         Send a command to a specified rigctl(d) and return response lines (without newlines).
         """
         logging.log(logging.DEBUG, f"Sending rigctl command '{cmd}'")
+
         sock.sendall((cmd + '\n').encode('ascii'))
         response = sock.recv(4096).decode('ascii') # if this line fails its probably a config error
     
         # multiple lines, strip trailing newline
         return [line.strip() for line in response.splitlines()]
 
-    def set_frequency(self, sock: socket.socket, freq: int):
+    def _set_frequency(self, sock: socket.socket, freq: int):
         """
         Send a rigctl(d) command to a specified socket to change the rig frequency. Frequency must be in herz.
         """
 
         self._send_rigctl_command(sock, f"F {freq}")
+
+    def _read_frequency(self, sock: socket.socket, direction: str) -> int:
+        """
+        Send a rigctl(d) command to a specified socket to read the current rig frequency.
+        Direction must be provided (either "uplink" or "downlink") to remove doppler correction from the frequency reading.
+        Returns frequency in herz.
+        """
+
+        freq = int(self._send_rigctl_command(sock, "f")[0])
+        if direction == "uplink":
+            freq -= self.uplink_correction
+                
+            return round(freq)
+        elif direction == "downlink":
+            freq -= self.downlink_correction
+
+            return round(freq)
+        else:
+            logging.log(logging.ERROR, "Invalid direction specified for read frequency command. This should never happen.")
+            exit()
+
+    def update_lock(self):
+        """
+        Synchronise the frequencies of uplink and downlink devices. The `update` function must be called to apply these updated frequencies.
+        """
+
+        #if (self.downlink_freq is None) or (self.uplink_freq is None): # No need for locking in this case
+        #    return
+
+        # Meassure frequencies of all downlink radios
+        down_freqs = {}
+        if self.sdr_sock:
+            down_freqs["sdr"] = self._read_frequency(self.sdr_sock, "downlink")
+        
+        if self.rx_sock: 
+            down_freqs["rx"] = self._read_frequency(self.rx_sock, "downlink")
+
+        # Meassure frequencies of all uplink radios
+        up_freqs = {}
+        if self.tx_sock:
+            up_freqs["tx"] = self._read_frequency(self.tx_sock, "uplink")
+
+        # Check which downlink device has the greatest frequency offset from the current frequency
+        down_offset = 0
+        down_offset_abs = -1
+
+        for _, frequency in down_freqs.items():
+            offset = frequency - self.current_downlink_frequency
+            offset_abs = abs(offset)
+            if offset_abs > down_offset_abs:
+                down_offset_abs = offset_abs
+                down_offset = offset
+        
+        # Check which uplink device has the greatest frequency offset from the current frequency
+        up_offset = 0
+        up_offset_abs = -1
+
+        for _, frequency in up_freqs.items():
+            offset = frequency - self.current_uplink_frequency
+            offset_abs = abs(offset)
+            if offset_abs > up_offset_abs:
+                up_offset_abs = offset_abs
+                up_offset = offset
+        
+        # Check if it's necessary to update the other devices
+        if (up_offset_abs + down_offset_abs) < 4:
+            return
+
+        # Check which radio has the biggest offset to know what offset should be applied to all other radios and set offsets
+        downlink_offset = 0
+        uplink_offset = 0
+        if down_offset_abs < up_offset_abs: # uplink is the guide offset
+            uplink_offset = up_offset
+            if self.lock:
+                downlink_offset = up_offset * self.inversion_multi
+        else: # downlink is the guide offset
+            downlink_offset = down_offset
+            if self.lock:
+                uplink_offset = down_offset * self.inversion_multi
+
+        # Apply offsets
+        if self.downlink_freq:
+            self.current_downlink_frequency += downlink_offset
+        if self.uplink_freq:
+            self.current_uplink_frequency += uplink_offset
 
     def update(self, range_rate: float):
         """
@@ -235,27 +329,25 @@ class Radio_Controller():
         # Handle downlink
         if self.downlink_freq:
             # Calulate corrected frequency
-            self.corrected_downlink = -(float(range_rate.km_per_s) / 299792.458) * self.downlink_freq # type: ignore
-            self.corrected_downlink += self.downlink_freq
+            self.downlink_correction = -(float(range_rate.km_per_s) / 299792.458) * self.current_downlink_frequency # type: ignore
+            self.corrected_downlink = round(self.downlink_correction + self.current_downlink_frequency)
 
             # Update downlink listeners
             if self.sdr_sock:
-                self.set_frequency(self.sdr_sock, self.corrected_downlink) # type: ignore
+                self._set_frequency(self.sdr_sock, self.corrected_downlink) # type: ignore
 
             if self.rx_sock:
-                self.set_frequency(self.rx_sock, round(self.corrected_downlink)+self.rx_offset) # type: ignore
+                self._set_frequency(self.rx_sock, self.corrected_downlink+self.rx_offset) # type: ignore
 
         # Handle uplink
         if self.uplink_freq:
             # Calulate corrected frequency
-            self.corrected_uplink = -(float(range_rate.km_per_s) / 299792.458) * self.uplink_freq # type: ignore
-            self.corrected_uplink += self.uplink_freq
+            self.uplink_correction = -(float(range_rate.km_per_s) / 299792.458) * self.uplink_freq # type: ignore
+            self.corrected_uplink = round(self.uplink_correction + self.current_uplink_frequency)
 
             # Update uplink listeners
             if self.tx_sock:
-                print(type(self.corrected_uplink))
-                print(type(self.tx_offset))
-                self.set_frequency(self.tx_sock, round(self.corrected_uplink)+self.tx_offset) # type: ignore
+                self._set_frequency(self.tx_sock, round(self.corrected_uplink)+self.tx_offset) # type: ignore
 
     def close(self):
         """Close all sockets and terminate rigctl instances"""

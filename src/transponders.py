@@ -42,7 +42,7 @@ def download_transponders():
         with open(os.path.join(paths.TRANSPONDERS_DIRECTORY_PATH, str(NORAD_ID)+".json"), "w") as f:
             json.dump(trsp, f)
 
-def get_transponder_frequencies(NORAD_ID: str, transponder_UUID: str) -> Tuple[int, int | None, int, int | None]:
+def get_transponder_frequencies(NORAD_ID: str, transponder_UUID: str) -> Tuple[int, int | None, int, int | None, bool]:
     """
     Get the uplink and downlink frequencies of a transponder by the satellite NORAD ID and the transponder UUID.
     This function returns a tuple with four elements.
@@ -63,7 +63,7 @@ def get_transponder_frequencies(NORAD_ID: str, transponder_UUID: str) -> Tuple[i
         logging.log(logging.ERROR, f"Error while loading transponder file for NORAD ID {NORAD_ID}. File contains invalid JSON.")
         exit()
 
-    return (trsp["downlink_low"], trsp["downlink_high"], trsp["uplink_low"], trsp["uplink_high"])
+    return (trsp["downlink_low"], trsp["downlink_high"], trsp["uplink_low"], trsp["uplink_high"], trsp["invert"])
 
 def user_transponder_selection(NORAD_ID: str) -> str:
     """

@@ -78,7 +78,7 @@ def remove_source(args):
 # tracking subcommand
 def track(args):
     # just a wrapper to accept the arguments
-    tracking.track(util.satellite_norad_from_input(args.satellite), args.rotor, args.radio, args.rotor_usb, args.rx_usb, args.tx_usb, args.trx_usb)
+    tracking.track(util.satellite_norad_from_input(args.satellite), args.rotor, args.radio, args.rotor_usb, args.rx_usb, args.tx_usb, args.trx_usb, not args.unlock)
 
 # settings subcommands
 def list_settings(args):
@@ -157,6 +157,8 @@ def set_up_argparse():
                               help="USB port that the transmitter is connected to (optional)")
     parser_track.add_argument("-x", "--trx_usb", type=str,
                               help="USB port that the transceiver is connected to (optional)")
+    parser_track.add_argument("-u", "--unlock", action="store_true",
+                              help="Don't lock uplink and downlink together for satellites with a frequency range.")
     parser_track.set_defaults(func=track)
 
     # settings subcommands
