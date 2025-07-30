@@ -56,7 +56,7 @@ def track(NORAD_ID: str,
     uplink_start = None
     inverting = False
     if radio_config_name:
-        logging.log(logging.INFO, "Please select which transponder the radio(s) should track:")
+        logging.log(logging.INFO, "Please select which transponder the radio(s) should track (or 'help' for help menu):")
         transponder_UUID = transponders.user_transponder_selection(NORAD_ID)
         transponder_frequencies = transponders.get_transponder_frequencies(NORAD_ID, transponder_UUID)
         downlink_lower, downlink_upper, uplink_lower, uplink_upper, inverting = transponder_frequencies

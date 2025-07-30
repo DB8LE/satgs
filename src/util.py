@@ -5,6 +5,18 @@ last_port = 56000
 
 COSPAR_ID_REGEX = re.compile(r'^[0-9]{4}-[0-9]{3}[A-Z]{1,3}$')
 
+FREQUENCY_BAND_LETTERS = [
+    (0, 30e6, "H"),          # HF and below
+    (30e6, 300e6, "V"),      # VHF
+    (300e6, 1e9, "U"),       # UHF
+    (1e9, 2e9, "L"),         # L-Band
+    (2e9, 4e9, "S"),         # S-Band
+    (4e9, 8e9, "C"),         # C-Band
+    (8e9, 12e9, "X"),        # X-Band
+    (12e9, 40e9, "K")       # K-Band (includes Ku and Ka)
+    # Anything else will be O (other)
+]
+
 def is_poetry():
     """A function to check if program is being run in poetry environment"""
     venv = os.environ.get("VIRTUAL_ENV")
@@ -28,6 +40,13 @@ def _check_port_used(port: int) -> bool:
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0
+    
+def get_frequency_band_letter(frequency: int) -> str:
+    """A function to get a frequency band letter by the frequency in herz"""
+    for lower, upper, letter in FREQUENCY_BAND_LETTERS:
+        if frequency >= lower and frequency <= upper:
+            return letter
+    return "O"
     
 def get_unused_port(purpose: str = "N/A") -> int:
     """

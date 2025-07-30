@@ -4,6 +4,8 @@ import os, requests, logging, json
 
 SATNOGS_TRANSITTERS_API_URL = "https://db.satnogs.org/api/transmitters/"
 
+TRANSPONDER_TYPES = {"Transponder": "T", "Transceiver": "R", "Transmitter": "B"}
+
 def download_transponders():
     """
     Download the newest version of the transmitters.json file.
@@ -88,15 +90,40 @@ def user_transponder_selection(NORAD_ID: str) -> str:
         num = str(i+1)
         mode = trsp["mode"]
         desc = trsp["description"]
+        
+        trsp_type = trsp["type"]
+        trsp_type = TRANSPONDER_TYPES[trsp_type]
+        downlink_freq = trsp["downlink_low"]
+        downlink_freq = util.get_frequency_band_letter(downlink_freq) if downlink_freq else " " # if its none use a space
+        uplink_freq = trsp["uplink_low"]
+        uplink_freq = util.get_frequency_band_letter(uplink_freq) if uplink_freq else " " # if its none use a space
+        freq = trsp_type + downlink_freq + uplink_freq
+
         num = " "*(longest_num-len(num))+num
         mode = mode+" "*(longest_mode-len(mode)) # pad with spaces
 
-        logging.log(logging.INFO, f"{num}. {mode}  /  {desc}")
+        logging.log(logging.INFO, f"{num}. {freq} {mode}  /  {desc}")
 
     # Get input
     choice = util.decorated_input()
-    try:
-        return list(transponders.items())[int(choice)-1][0]
-    except Exception:
-        logging.log(logging.ERROR, "Invalid choice!")
-        exit()
+    if choice.lower() == "help": # show help menu
+        print()
+        logging.log(logging.INFO ,"Transponder selection help menu")
+        logging.log(logging.INFO ,"I. TTT MMMMM* / DDDDDDDDDD*")
+        logging.log(logging.INFO ,"I: Option index")
+        logging.log(logging.INFO ,"T: Transponder info")
+        logging.log(logging.INFO ,"T: 1. character is either <T>ransponder, <R>epeater or <B>eacon")
+        logging.log(logging.INFO ,"T: 2. character is downlink frequency band")
+        logging.log(logging.INFO ,"T: 3. character is uplink frequency band")
+        logging.log(logging.INFO ,"T: 3. frequency band letter will be 'H' if frequency if below VHF or 'O' if its above Ka band")
+        logging.log(logging.INFO ,"M: Mode")
+        logging.log(logging.INFO ,"D: Description")
+        logging.log(logging.INFO ,"Press enter to return to selection")
+        input()
+        return user_transponder_selection(NORAD_ID)
+    else: # return selection
+        try:
+            return list(transponders.items())[int(choice)-1][0]
+        except Exception:
+            logging.log(logging.ERROR, "Invalid choice!")
+            exit()
