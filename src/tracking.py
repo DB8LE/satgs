@@ -159,7 +159,7 @@ def track(NORAD_ID: str,
                 rotor.update(round(azimuth), round(elevation)) # type: ignore
 
                 # Generate rotor status message
-                rotor_status_msg = f"AZ: {azimuth}°  EL: {elevation}°     "
+                rotor_status_msg = f"   AZ: {azimuth}°  EL: {elevation}°"
 
             # Handle radios
             radio_status_msg = ""
@@ -176,14 +176,20 @@ def track(NORAD_ID: str,
                 uplink_message = ""
 
                 if radio.corrected_downlink:
-                    downlink_message = f"D: {str(round(radio.corrected_downlink/1000000, 4))}M"
+                    current_downlink = round(radio.current_downlink_frequency/1000000, 4) # show base frequency in MHz
+                    doppler_shift = round(radio.downlink_correction)  # show doppler shift correction in herz
+                    doppler_shift_symbol = "+" if doppler_shift >= 0 else "" # show plus if doppler shift is positive
+                    downlink_message = f"D: {current_downlink}M {doppler_shift_symbol}{doppler_shift}"
                 if radio.corrected_uplink:
-                    uplink_message = f"U: {str(round(radio.corrected_uplink/1000000, 4))}M"
+                    current_uplink = round(radio.current_uplink_frequency/1000000, 4) # show base frequency in MHz
+                    doppler_shift = round(radio.uplink_correction)  # show doppler shift correction in herz
+                    doppler_shift_symbol = "+" if doppler_shift >= 0 else "" # show plus if doppler shift is positive
+                    uplink_message = f"U: {current_uplink}M {doppler_shift_symbol}{doppler_shift}"
 
-                radio_status_msg = f"{downlink_message} {uplink_message}"
+                radio_status_msg = f"{downlink_message}  {uplink_message}"
 
             # Log current status to console
-            logging.log(logging.INFO, rotor_status_msg+radio_status_msg)
+            logging.log(logging.INFO, radio_status_msg+rotor_status_msg)
 
             # Wait delay
             time.sleep(TRACKING_UPDATE_INTERVAL)
