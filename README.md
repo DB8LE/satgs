@@ -71,8 +71,12 @@ There are multiple radio types you can configure. You can define any combination
         "serial_speed": 38400, // serial speed of the connection
         "offset": 0 // frequency offset in hz
     },
-    "tx": { // a hamlib controlled rig to serve as a transmitter (uplink) [NOT IMPLEMENTED YET]
-
+    "tx": { // a hamlib controlled rig to serve as a transmitter (uplink)
+        "usb_port": "/dev/ttyUSB0",
+        "rigctl_ID": 123, // rigctl id of your transmitter
+                          // to find this, run `rigctl --list`
+        "serial_speed": 38400, // serial speed of the connection
+        "offset": 0 // frequency offset in hz
     },
     "trx": { // a hamlib controlled rig to serve as a transceiver [NOT IMPLEMENTED YET]
 
