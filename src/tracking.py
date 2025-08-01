@@ -26,7 +26,8 @@ def track(NORAD_ID: str,
           rx_usb_overwrite: str | None = None,
           tx_usb_overwrite: str | None = None,
           trx_usb_overwrite: str | None = None,
-          lock_up_down: bool = True):
+          lock_up_down: bool = True,
+          rotor_control_mode_overwrite: int | None = None):
     if rotor_config_name is None and radio_config_name is None:
         logging.log(logging.ERROR, "Must provide either a radio config, rotor config or both. Not none.")
         exit()
@@ -95,7 +96,7 @@ def track(NORAD_ID: str,
     # Initialize rotor
     rotor = None
     if rotor_config_name:
-        rotor = rotor_controller.Rotor_Controller(rotor_config_name, rotor_usb_overwrite)
+        rotor = rotor_controller.Rotor_Controller(rotor_config_name, rotor_usb_overwrite, rotor_control_mode_overwrite)
     
     # Initialize radio
     radio = None
@@ -109,7 +110,13 @@ def track(NORAD_ID: str,
             logging.log(logging.INFO, "Rotating to starting azimuth")
             initial_azimuth = round(initial_azimuth.degrees) # type: ignore
             rotor.update(initial_azimuth, 0)
-            while abs(initial_azimuth-rotor.current_az) > 2: # Only continue when rotor is within 2 degrees of initial azimuth
+            
+            # If alternate control type is used, make sure the correct target azimuth is being checked for
+            rotor_target_azimuth = initial_azimuth
+            if rotor.control_type == 2:
+                rotor_target_azimuth = (round(rotor.max_az/2) + initial_azimuth) % rotor.max_az
+
+            while abs(rotor_target_azimuth-rotor.current_az) > 2: # Only continue when rotor is within 2 degrees of initial azimuth
                 rotor.update_current_position()
                 time.sleep(0.5)
             logging.log(logging.INFO, "Rotor is at start azimuth")
@@ -138,28 +145,39 @@ def track(NORAD_ID: str,
             _, _, _, _, _, range_rate = pos.frame_latlon_and_rates(station_location)
             radio.update(range_rate) # type: ignore
 
+        peak_elevation = 0
+        is_descending = 0
+
         while True:
             utc_now = datetime.datetime.now(datetime.timezone.utc)
             pos = (satellite - station_location).at(timescale.from_datetime(utc_now))
 
             # Calculate current satellite position
-            elevation, azimuth, _ = pos.altaz()
-            azimuth = round(azimuth.degrees) # type: ignore
-            elevation = round(elevation.degrees) # type: ignore
+            elevation, azimuth, _ = pos.altaz() # type: ignore
+            azimuth: int = round(azimuth.degrees) # type: ignore
+            elevation: float = elevation.degrees # type: ignore
 
-            if elevation <= 0: # Check if pass is done
-                logging.log(logging.INFO, "Pass completed!")
+            # Update peak elevation and check if satellite elevation is descending
+            if elevation > peak_elevation:
+                peak_elevation = elevation
+                is_descending = False
+            elif elevation < peak_elevation:
+                is_descending = True
 
-                break
+            # Check if pass is done
+            if is_descending:
+                if elevation < 0:
+                    logging.log(logging.INFO, "Pass completed!")
+                    break
 
             # Handle rotor
             rotor_status_msg = ""
             if rotor:
                 # Update rotor position
-                rotor.update(round(azimuth), round(elevation)) # type: ignore
+                rotor.update(azimuth, round(elevation)) # type: ignore
 
                 # Generate rotor status message
-                rotor_status_msg = f"   AZ: {azimuth}°  EL: {elevation}°"
+                rotor_status_msg = f"   AZ: {azimuth}°  EL: {round(elevation, 1)}°"
 
             # Handle radios
             radio_status_msg = ""

@@ -30,7 +30,7 @@ def parse_rotor_config(rotor_config_name: str) -> Dict[str, str | int]:
     return json_data
 
 class Rotor_Controller():
-    def __init__(self, rotor_config_name: str, usb_overwrite: str | None = None) -> None:
+    def __init__(self, rotor_config_name: str, usb_overwrite: str | None = None, rotor_mode_overwrite: int | None = None) -> None:
         """
         Initialize rotor object. Must provide the name of the rotor config file to be read, without the extension.
         Optionally, define a usb port to overwrite the one in the config.
@@ -39,18 +39,14 @@ class Rotor_Controller():
         # Parse config
         rotor_config = parse_rotor_config(rotor_config_name)
 
-        self.usb_port = str(rotor_config["usb_port"])
+        self.usb_port = str(rotor_config["usb_port"]) if usb_overwrite is None else usb_overwrite
         self.rotctl_ID = str(rotor_config["rotctl_ID"])
         self.rotctld_port = util.get_unused_port("rotctld")
         self.min_az = int(rotor_config["min_az"])
         self.max_az = int(rotor_config["max_az"])
         self.min_el = int(rotor_config["min_el"])
         self.max_el = int(rotor_config["max_el"])
-        self.control_type = int(rotor_config["control_type"])
-
-        # Check for USB overwrite
-        if usb_overwrite:
-            self.usb_port = usb_overwrite
+        self.control_type = int(rotor_config["control_type"]) if rotor_mode_overwrite is None else rotor_mode_overwrite
 
         # Attempt to start rotctld
         logging.log(logging.INFO, "Starting rotctld")
@@ -119,6 +115,10 @@ class Rotor_Controller():
         
         # Read azimuth and elevation
         self.update_current_position()
+
+        # Apply alternate control style if option is set
+        if self.control_type == 2:
+            new_azimuth = (round(self.max_az/2) + new_azimuth) % self.max_az
 
         self.rotate_to(new_azimuth, new_elevation)
 

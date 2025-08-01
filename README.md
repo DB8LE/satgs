@@ -87,3 +87,4 @@ There are multiple radio types you can configure. You can define any combination
 ## Known bugs
 
 - When settings file hasn't been created yet (usully first run of the program), logging logs everything twice. Once with default format, once with the custom format.
+- Geostationary satellites might cause undefined behaviour (?)

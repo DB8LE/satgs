@@ -78,7 +78,13 @@ def remove_source(args):
 # tracking subcommand
 def track(args):
     # just a wrapper to accept the arguments
-    tracking.track(util.satellite_norad_from_input(args.satellite), args.rotor, args.radio, args.rotor_usb, args.rx_usb, args.tx_usb, args.trx_usb, not args.unlock)
+    rotor_mode_overwrite = None
+    if args.rotor_normal:
+        rotor_mode_overwrite = 1
+    elif args.rotor_inverted:
+        rotor_mode_overwrite = 2
+
+    tracking.track(util.satellite_norad_from_input(args.satellite), args.rotor, args.radio, args.rotor_usb, args.rx_usb, args.tx_usb, args.trx_usb, not args.unlock, rotor_mode_overwrite)
 
 # settings subcommands
 def list_settings(args):
@@ -159,6 +165,10 @@ def set_up_argparse():
                               help="USB port that the transceiver is connected to (optional)")
     parser_track.add_argument("-u", "--unlock", action="store_true",
                               help="Don't lock uplink and downlink together for satellites with a frequency range.")
+    parser_track.add_argument("-n", "--rotor_normal", action="store_true",
+                              help="Overwrite the rotor config to use rotor control mode 1")
+    parser_track.add_argument("-i", "--rotor_inverted", action="store_true",
+                              help="Overwrite the rotor config to use rotor control mode 2")
     parser_track.set_defaults(func=track)
 
     # settings subcommands
