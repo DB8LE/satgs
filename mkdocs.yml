@@ -1,0 +1,7 @@
+site_name: SatGS
+repo_url: https://github.com/DB8LE/satgs
+theme:
+  name: readthedocs
+  highlightjs: true
+markdown_extensions:
+  - admonition
