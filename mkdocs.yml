@@ -1,7 +1,19 @@
 site_name: SatGS
 repo_url: https://github.com/DB8LE/satgs
+edit_uri: edit/main/docs/
+
+nav:
+  - "Welcome": "index.md"
+
 theme:
   name: readthedocs
   highlightjs: true
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
 markdown_extensions:
   - admonition

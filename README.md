@@ -32,7 +32,7 @@ Note: In GPredict there is the option to set a rotor type which has its azimuth 
 
 Note 2: Support for rotors that communicate with rotctl over anything other than USB () also aren't supported yet, I don't know how rotctl handles these either.
 
-```json
+```jsonc
 {
     "usb_port": "/dev/ttyUSB0", // usb port that the rotor is connected to
                                 // this can be overwritten with the -u or --usb command line argument
@@ -51,7 +51,6 @@ Note 2: Support for rotors that communicate with rotctl over anything other than
                       // and you needing to point your rotor north in the opposite direction. If your rotor supports up to 540° of 
                       // azimuth or more, this mode will eliminate all south or north crossing problems. Unless you're tracking 
                       // some really weird orbit that has both a north and south crossing.
-                      // (MODE 2 NOT IMPLEMENTED YET)
 }
 ```
 
@@ -59,7 +58,7 @@ Note 2: Support for rotors that communicate with rotctl over anything other than
 
 There are multiple radio types you can configure. You can define any combination of these, as long as at least one is defined, and only a maximum of one of each type is defined.
 
-```json
+```jsonc
 {
     "sdr": { // a connection to a rigctld server like the one in SDR++ to serve as a receiver (downlink)
         "rigctl_port": 4532 // port of the rigctl server
