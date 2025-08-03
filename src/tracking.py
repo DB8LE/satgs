@@ -72,26 +72,39 @@ def track(NORAD_ID: str,
         if uplink_upper:
             uplink_start = (uplink_lower + uplink_upper) // 2
 
-    # Calculate time of next pass
     utc_now = datetime.datetime.now(datetime.timezone.utc)
-    stop = utc_now + datetime.timedelta(hours=12)
-    times, events = satellite.find_events(station_location, timescale.from_datetime(utc_now), timescale.from_datetime(stop))
+    
+    # Check if pass has already begun
+    pos = (satellite - station_location).at(timescale.from_datetime(utc_now))
+    elevation, azimuth, _ = pos.altaz() # type: ignore
+    elevation: float = elevation.degrees # type: ignore
+    azimuth: int = round(azimuth.degrees) # type: ignore
+    
+    pass_already_started = False
+    if elevation > 0:
+        pass_already_started = True
+        initial_azimuth = azimuth
+    else:
+        # Calculate time of next pass
 
-    earliest_rise_time = None
-    try:
-        earliest_rise_index = list(events).index(0)
-        earliest_rise_time = times[earliest_rise_index]
-    except ValueError:
-        logging.log(logging.ERROR, "No pass of satellite found within the next 12 hours.")
-        exit()
+        stop = utc_now + datetime.timedelta(hours=12)
+        times, events = satellite.find_events(station_location, timescale.from_datetime(utc_now), timescale.from_datetime(stop))
 
-    # Calculate beginnning azimuth of pass
-    pos = (satellite - station_location).at(earliest_rise_time)
-    _, initial_azimuth, _ = pos.altaz()
-    earliest_rise_time = earliest_rise_time.utc_datetime()
+        earliest_rise_time = None
+        try:
+            earliest_rise_index = list(events).index(0)
+            earliest_rise_time = times[earliest_rise_index]
+        except ValueError:
+            logging.log(logging.ERROR, "No pass of satellite found within the next 12 hours.")
+            exit()
 
-    # Notify user
-    logging.log(logging.INFO, f"Found next pass at {earliest_rise_time.strftime('%H:%M:%S')} UTC with an initial azimuth of {round(initial_azimuth.degrees)}°") # type: ignore
+        # Calculate beginnning azimuth of pass
+        pos = (satellite - station_location).at(earliest_rise_time)
+        _, initial_azimuth, _ = pos.altaz()
+        earliest_rise_time = earliest_rise_time.utc_datetime()
+
+        # Notify user
+        logging.log(logging.INFO, f"Found next pass at {earliest_rise_time.strftime('%H:%M:%S')} UTC with an initial azimuth of {round(initial_azimuth.degrees)}°") # type: ignore
 
     # Initialize rotor
     rotor = None
@@ -121,22 +134,23 @@ def track(NORAD_ID: str,
                 time.sleep(0.5)
             logging.log(logging.INFO, "Rotor is at start azimuth")
         
-        # Wait for pass to start
-        utc_now = datetime.datetime.now(datetime.timezone.utc)
-        time_until_pass = earliest_rise_time - utc_now
-        seconds_until_pass = time_until_pass.total_seconds() + 2 # add 2 seconds to make sure satellite is actually above horizon
+        # Wait for pass to start if pass hasn't begun yet
+        if not pass_already_started:
+            utc_now = datetime.datetime.now(datetime.timezone.utc)
+            time_until_pass = earliest_rise_time - utc_now # type: ignore
+            seconds_until_pass = time_until_pass.total_seconds() + 2 # add 2 seconds to make sure satellite is actually above horizon
 
-        if seconds_until_pass > 10:
-            if seconds_until_pass > 60:
-                logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass/60)} min)")
+            if seconds_until_pass > 10:
+                if seconds_until_pass > 60:
+                    logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass/60)} min)")
+                else:
+                    logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass)}s)")
+                time.sleep(seconds_until_pass-10)
+                logging.log(logging.INFO, "Pass starting in 10 seconds!")
+                time.sleep(10)
             else:
-                logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass)}s)")
-            time.sleep(seconds_until_pass-10)
-            logging.log(logging.INFO, "Pass starting in 10 seconds!")
-            time.sleep(10)
-        else:
-            logging.log(logging.INFO, f"Pass starting in {round(seconds_until_pass)} seconds!")
-            time.sleep(seconds_until_pass)
+                logging.log(logging.INFO, f"Pass starting in {round(seconds_until_pass)} seconds!")
+                time.sleep(seconds_until_pass)
 
         # Update frequency once before starting
         if radio:
