@@ -139,17 +139,17 @@ def track(NORAD_ID: str,
         if not pass_already_started:
             utc_now = datetime.datetime.now(datetime.timezone.utc)
             time_until_pass = earliest_rise_time - utc_now # type: ignore
-            seconds_until_pass = time_until_pass.total_seconds() + 2 # add 2 seconds to make sure satellite is actually above horizon
+            seconds_until_pass = time_until_pass.total_seconds()
 
             if seconds_until_pass > 10:
                 if seconds_until_pass > 60:
-                    logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass/60)} min)")
+                    logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass/60)} min / {earliest_rise_time.strftime("%H:%M")}z)") # type: ignore
                 else:
                     logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass)}s)")
                 time.sleep(seconds_until_pass-10)
                 logging.log(logging.INFO, "Pass starting in 10 seconds!")
                 time.sleep(10)
-            else:
+            elif (seconds_until_pass < 10) and (seconds_until_pass > 0):
                 logging.log(logging.INFO, f"Pass starting in {round(seconds_until_pass)} seconds!")
                 time.sleep(seconds_until_pass)
 

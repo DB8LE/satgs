@@ -2,8 +2,8 @@ from src import paths, util
 from typing import Dict
 import subprocess, os, json, logging, socket
 
-RADIO_SDR_CONF_EXPECTED_KEYS = ["rigctl_port"]
-RADIO_RX_CONF_EXPECTED_KEYS = ["usb_port", "rigctl_ID", "serial_speed", "offset"]
+RADIO_SDR_CONF_EXPECTED_KEYS = set(["rigctl_port"])
+RADIO_RX_CONF_EXPECTED_KEYS = set(["usb_port", "rigctl_ID", "serial_speed", "offset"])
 RADIO_TX_CONF_EXPECTED_KEYS = RADIO_RX_CONF_EXPECTED_KEYS
 
 def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]]:
@@ -30,19 +30,19 @@ def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]
     # Make sure that atleast one valid radio type is defined and that the defined ones have the expected keys.
     valid_radio_type_defined = False
     if "sdr" in json_data:
-        if list(json_data["sdr"].keys()) != RADIO_SDR_CONF_EXPECTED_KEYS:
+        if set(json_data["sdr"].keys()) != RADIO_SDR_CONF_EXPECTED_KEYS:
             logging.log(logging.ERROR, "Failed parsing file radio config file '"+radio_config_name+".json'. Invalid keys present in SDR section of config file.")
             exit()
         valid_radio_type_defined = True
     
     if "rx" in json_data:
-        if list(json_data["rx"].keys()) != RADIO_RX_CONF_EXPECTED_KEYS:
+        if set(json_data["rx"].keys()) != RADIO_RX_CONF_EXPECTED_KEYS:
             logging.log(logging.ERROR, "Failed parsing file radio config file '"+radio_config_name+".json'. Invalid keys present in RX section of config file.")
             exit()
         valid_radio_type_defined = True
     
     if "tx" in json_data:
-        if list(json_data["tx"].keys()) != RADIO_TX_CONF_EXPECTED_KEYS:
+        if set(json_data["tx"].keys()) != RADIO_TX_CONF_EXPECTED_KEYS:
             logging.log(logging.ERROR, "Failed parsing file radio config file '"+radio_config_name+".json'. Invalid keys present in TX section of config file.")
             exit()
         valid_radio_type_defined = True

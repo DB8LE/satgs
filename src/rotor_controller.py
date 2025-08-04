@@ -2,7 +2,7 @@ from src import paths, util
 from typing import Dict
 import subprocess, os, json, logging, socket
 
-ROTOR_CONF_EXPECTED_KEYS = ["usb_port", "rotctl_ID", "min_az", "max_az", "min_el", "max_el", "control_type", "home_on_end"]
+ROTOR_CONF_EXPECTED_KEYS = set(["usb_port", "rotctl_ID", "min_az", "max_az", "min_el", "max_el", "control_type", "home_on_end"])
 
 def parse_rotor_config(rotor_config_name: str) -> Dict[str, str | int]:
     """
@@ -23,7 +23,7 @@ def parse_rotor_config(rotor_config_name: str) -> Dict[str, str | int]:
         logging.log(logging.ERROR, "Failed parsing file rotor config file '"+rotor_config_name+".json'. JSON data parsed to invalid data type.")
         exit()
 
-    if list(json_data.keys()) != ROTOR_CONF_EXPECTED_KEYS:
+    if set(json_data.keys()) != ROTOR_CONF_EXPECTED_KEYS:
         logging.log(logging.ERROR, "Failed parsing file rotor config file '"+rotor_config_name+".json'. Invalid keys present in config file.")
         exit()
 
@@ -95,8 +95,22 @@ class Rotor_Controller():
         Send rotctld command to spin rotor to a certain azimuth and elevation.
         Automatically sets too low elevations to minmum elevation.
         """
+
+        # Clamp elevation value
         if elevation < self.min_el:
             elevation = self.min_el
+        elif elevation > self.max_el:
+            if self.max_el > 90:
+                logging.log(logging.WARN, "Tried to rotate to a too high elevation on a rotor that supports elevations of more than 90°. This is likely due to a bug and will cause issues.")
+            elevation = self.max_az
+
+        # Clamp azimuth value
+        if azimuth < self.min_az:
+            azimuth = self.min_az
+        elif azimuth > self.max_az:
+            if self.max_az > 360:
+                logging.log(logging.WARN, "Tried to rotate to a too high azimuth on a rotor that supports azimuths of more than 360°. This is likely due to a bug and will cause issues.")
+            azimuth = self.max_az
 
         self._send_rotctld_command(f"P {azimuth} {elevation}")
 
