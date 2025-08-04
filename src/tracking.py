@@ -143,7 +143,7 @@ def track(NORAD_ID: str,
 
             if seconds_until_pass > 10:
                 if seconds_until_pass > 60:
-                    logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass/60)} min / {earliest_rise_time.strftime("%H:%M")}z)") # type: ignore
+                    logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass/60)} min / {earliest_rise_time.strftime('%H:%M')}z)") # type: ignore
                 else:
                     logging.log(logging.INFO, f"Waiting for pass to start ({round(seconds_until_pass)}s)")
                 time.sleep(seconds_until_pass-10)
