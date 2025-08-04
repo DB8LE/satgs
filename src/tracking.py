@@ -78,12 +78,13 @@ def track(NORAD_ID: str,
     pos = (satellite - station_location).at(timescale.from_datetime(utc_now))
     elevation, azimuth, _ = pos.altaz() # type: ignore
     elevation: float = elevation.degrees # type: ignore
-    azimuth: int = round(azimuth.degrees) # type: ignore
     
+    initial_elevation = 0
     pass_already_started = False
     if elevation > 0:
         pass_already_started = True
         initial_azimuth = azimuth
+        initial_elevation = round(elevation)
     else:
         # Calculate time of next pass
 
@@ -122,7 +123,7 @@ def track(NORAD_ID: str,
         if rotor:
             logging.log(logging.INFO, "Rotating to starting azimuth")
             initial_azimuth = round(initial_azimuth.degrees) # type: ignore
-            rotor.update(initial_azimuth, 0)
+            rotor.update(initial_azimuth, initial_elevation)
             
             # If alternate control type is used, make sure the correct target azimuth is being checked for
             rotor_target_azimuth = initial_azimuth
@@ -184,7 +185,7 @@ def track(NORAD_ID: str,
                     logging.log(logging.INFO, "Pass completed!")
                     if rotor and rotor.home_on_end:
                         logging.log(logging.INFO, "Homing rotor..")
-                        rotor.update(0, rotor.min_el)
+                        rotor.update(0, 0)
                     break
 
             # Handle rotor
