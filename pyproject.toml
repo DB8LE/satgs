@@ -1,6 +1,6 @@
 [project]
 name = "satgs"
-version = "0.3.12"
+version = "0.3.13"
 description = "A command line tool that controls radios and rotors for amateur satellite operation."
 authors = [
     {name = "DB8LE",email = "db8le@darc.de"}

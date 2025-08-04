@@ -2,7 +2,7 @@ from src import paths, util
 from typing import Dict
 import subprocess, os, json, logging, socket
 
-ROTOR_CONF_EXPECTED_KEYS = ["usb_port", "rotctl_ID", "min_az", "max_az", "min_el", "max_el", "control_type"]
+ROTOR_CONF_EXPECTED_KEYS = ["usb_port", "rotctl_ID", "min_az", "max_az", "min_el", "max_el", "control_type", "home_on_end"]
 
 def parse_rotor_config(rotor_config_name: str) -> Dict[str, str | int]:
     """
@@ -35,7 +35,7 @@ class Rotor_Controller():
         Initialize rotor object. Must provide the name of the rotor config file to be read, without the extension.
         Optionally, define a usb port to overwrite the one in the config.
         """
-        
+
         # Parse config
         rotor_config = parse_rotor_config(rotor_config_name)
 
@@ -47,6 +47,7 @@ class Rotor_Controller():
         self.min_el = int(rotor_config["min_el"])
         self.max_el = int(rotor_config["max_el"])
         self.control_type = int(rotor_config["control_type"]) if rotor_mode_overwrite is None else rotor_mode_overwrite
+        self.home_on_end = bool(rotor_config["home_on_end"])
 
         # Attempt to start rotctld
         logging.log(logging.INFO, "Starting rotctld")

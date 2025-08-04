@@ -182,6 +182,9 @@ def track(NORAD_ID: str,
             if is_descending:
                 if elevation < 0:
                     logging.log(logging.INFO, "Pass completed!")
+                    if rotor and rotor.home_on_end:
+                        logging.log(logging.INFO, "Homing rotor..")
+                        rotor.update(0, rotor.min_el)
                     break
 
             # Handle rotor

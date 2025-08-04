@@ -42,7 +42,7 @@ Note 2: Support for rotors that communicate with rotctl over anything other than
     "max_az": 359, // maximum azimuth that the rotor is capable of
     "min_el": 2, // minimum elevation that the rotor is capable of
     "max_el": 180, // maximum elevation that the rotor is capable of
-    "control_type": 1 // mode 1: A normal classic control style that sets 0° to north. 
+    "control_type": 1, // mode 1: A normal classic control style that sets 0° to north. 
                       // If your rotor supports the range 0-539° or smaller, you will probably want to use this.
                       // However, if your rotor supports more, this is the wrong choice, as you could potenitally be eliminating
                       // north crossing problems in more directions than just one with the other mode.
@@ -51,6 +51,8 @@ Note 2: Support for rotors that communicate with rotctl over anything other than
                       // and you needing to point your rotor north in the opposite direction. If your rotor supports up to 540° of 
                       // azimuth or more, this mode will eliminate all south or north crossing problems. Unless you're tracking 
                       // some really weird orbit that has both a north and south crossing.
+    "home_on_end": true // home the rotor at the end of a pass. Recommended for portable setups.
+                        // Takes control type into consideration, so it will home to whatever the current control types north is.
 }
 ```
 
