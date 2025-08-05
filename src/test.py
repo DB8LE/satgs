@@ -1,5 +1,5 @@
 from src import radio_controller, rotor_controller
-import logging
+import logging, time
 
 def rotor_home(rotor_config_name: str, usb_overwrite: str | None = None, rotor_mode_overwrite: int | None = None):
     """A testing function to home a rotor to north"""
@@ -76,3 +76,21 @@ def rotor_test_full(rotor_config_name: str, usb_overwrite: str | None = None, ro
     logging.log(logging.INFO, "Done")
 
     rotor.close()
+
+def test_radio(radio_config_name: str, downlink_frequency: int | None, uplink_frequency: int | None, rx_usb_overwrite: str | None, tx_usb_overwrite: str | None, trx_usb_overwrite: str | None):
+    """A test function to set a radio to a certain frequency (specified in herz)"""
+
+    logging.log(logging.INFO, "Initializing radio")
+    radio = radio_controller.Radio_Controller(radio_config_name, downlink_frequency, uplink_frequency, rx_usb_overwrite, tx_usb_overwrite, trx_usb_overwrite)
+    
+    logging.log(logging.INFO, "Updating frequency")
+    radio.update(0)
+
+    logging.log(logging.INFO, "Entering lock update loop. Press ctrl+C to exit.")
+    try:
+        while True:
+            radio.update_lock()
+            radio.update(0)
+            time.sleep(0.5)
+    except Exception:
+        radio.close()

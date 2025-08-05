@@ -114,6 +114,9 @@ def test_rotor_home(args):
 
     test.rotor_home(args.rotor, args.rotor_usb, rotor_mode_overwrite)
 
+def test_radio(args):
+    test.test_radio(args.radio, args.downlink, args.uplink, args.rx_usb, args.tx_usb, args.trx_usb)
+
 # settings subcommands
 def list_settings(args):
     logging.log(logging.INFO, "Listing settings...")
@@ -187,17 +190,17 @@ def set_up_argparse():
                               help="Overwrite the rotor config to use rotor control mode 1")
     parser_control_common.add_argument("-i", "--rotor_inverted", action="store_true",
                               help="Overwrite the rotor config to use rotor control mode 2")
+    parser_control_common.add_argument("-r", "--rx_usb", type=str,
+                              help="USB port that the receiver is connected to (optional)")
+    parser_control_common.add_argument("-t", "--tx_usb", type=str,
+                              help="USB port that the transmitter is connected to (optional)")
+    parser_control_common.add_argument("-x", "--trx_usb", type=str,
+                              help="USB port that the transceiver is connected to (optional)")
 
     # tracking subcommand
     parser_track = sub_parsers.add_parser("track", help="Track a satellite", parents=[parser_control_common])
     parser_track.add_argument("satellite", help="Either the NORAD ID, COSPAR ID or name of the satellite to be tracked." \
                                                   "TLE must be avaliable in local database.")
-    parser_track.add_argument("-r", "--rx_usb", type=str,
-                              help="USB port that the receiver is connected to (optional)")
-    parser_track.add_argument("-t", "--tx_usb", type=str,
-                              help="USB port that the transmitter is connected to (optional)")
-    parser_track.add_argument("-x", "--trx_usb", type=str,
-                              help="USB port that the transceiver is connected to (optional)")
     parser_track.add_argument("-u", "--unlock", action="store_true",
                               help="Don't lock uplink and downlink together for satellites with a frequency range.")
     parser_track.set_defaults(func=track)
@@ -215,6 +218,13 @@ def set_up_argparse():
 
     parser_test_rotor_full = test_rotor_sub.add_parser("full", help="Test a rotor by moving it to various points", parents=[parser_control_common])
     parser_test_rotor_full.set_defaults(func=test_rotor_full)
+
+    parser_test_radio = test_sub.add_parser("radio", help="Test a radio", parents=[parser_control_common])
+    parser_test_radio.add_argument("--downlink", type=int,
+                              help="Downlink frequency in herz to set the radios to")
+    parser_test_radio.add_argument("--uplink", type=int,
+                              help="Uplink frequency in herz to set the radios to")
+    parser_test_radio.set_defaults(func=test_radio)
 
     # settings subcommands
     parser_settings = sub_parsers.add_parser("settings", help="View and change settings")

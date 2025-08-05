@@ -323,13 +323,13 @@ class Radio_Controller():
 
     def update(self, range_rate: float):
         """
-        Update all defined transmitters/receivers with the satellites range rate.
+        Update all defined transmitters/receivers with the satellites range rate specified in km/s.
         """
 
         # Handle downlink
         if self.downlink_freq:
             # Calulate corrected frequency
-            self.downlink_correction = -(float(range_rate.km_per_s) / 299792.458) * self.current_downlink_frequency # type: ignore
+            self.downlink_correction = -(range_rate / 299792.458) * self.current_downlink_frequency # type: ignore
             self.corrected_downlink = round(self.downlink_correction + self.current_downlink_frequency)
 
             # Update downlink listeners
@@ -342,7 +342,7 @@ class Radio_Controller():
         # Handle uplink
         if self.uplink_freq:
             # Calulate corrected frequency
-            self.uplink_correction = -(float(range_rate.km_per_s) / 299792.458) * self.uplink_freq # type: ignore
+            self.uplink_correction = -(range_rate / 299792.458) * self.uplink_freq # type: ignore
             self.corrected_uplink = round(self.uplink_correction + self.current_uplink_frequency)
 
             # Update uplink listeners

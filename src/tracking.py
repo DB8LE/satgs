@@ -150,7 +150,7 @@ def track(NORAD_ID: str,
             utc_now = datetime.datetime.now(datetime.timezone.utc)
             pos = (satellite - station_location).at(timescale.from_datetime(utc_now))
             _, _, _, _, _, range_rate = pos.frame_latlon_and_rates(station_location)
-            radio.update(range_rate) # type: ignore
+            radio.update(float(range_rate.km_per_s)) # type: ignore
 
         peak_elevation = 0
         is_descending = 0
