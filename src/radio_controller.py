@@ -73,10 +73,10 @@ class Radio_Controller():
         # Parse config
         radio_config = parse_radio_config(radio_config_name)
 
-        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency is None: # Warn user if a receiver has been defined but no uplink freq was provided
+        if (("tx" in radio_config) or ("trx" in radio_config)) and uplink_frequency is None: # Warn user if a transmitter has been defined but no uplink freq was provided
             logging.log(logging.WARN, "Transmitter/Transceiver is defined in the configuration but no uplink frequency was provided. Transmitters will be ignored.")
 
-        if (("rx" in radio_config) or ("trx" in radio_config)) and downlink_frequency is None: # Warn user if a transmitter has been defined but no downlink freq was provided
+        if (("sdr" in radio_config) or ("rx" in radio_config) or ("trx" in radio_config)) and downlink_frequency is None: # Warn user if a receiver has been defined but no downlink freq was provided
             logging.log(logging.WARN, "Receiver/Transceiver/SDR is defined in the configuration but no downlink frequency was provided. Receivers will be ignored.")
 
         if ("tx" in radio_config) and ("rx" in radio_config):
