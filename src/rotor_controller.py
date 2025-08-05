@@ -102,8 +102,8 @@ class Rotor_Controller():
     
     def rotate_to(self, azimuth: int, elevation: int):
         """
-        Send rotctld command to spin rotor to a certain azimuth and elevation.
-        Automatically sets too low elevations to minmum elevation.
+        Send rotctld command to spin rotor to a certain azimuth and elevation. Doesn't take control mode into account. 
+        Automatically clamps too high/low azimuth/elevation to maximum/minimum.
         """
 
         # Clamp elevation value
@@ -146,7 +146,7 @@ class Rotor_Controller():
 
         self.rotate_to(new_azimuth, new_elevation)
 
-    def rotate_to_blocking(self, azimuth: int, elevation: int, tolerance:int = 2):
+    def rotate_to_blocking(self, azimuth: int, elevation: int, tolerance: int = 2):
         """
         Spins the rotor to a certain position and blocks (sleeps) until it has reached the target position.
         Requires target azimuth, elevation, and inaccuracy tolerance in degrees.

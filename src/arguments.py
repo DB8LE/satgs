@@ -1,4 +1,4 @@
-from src import tle, util, tracking, settings, paths, transponders
+from src import tle, util, tracking, settings, paths, transponders, test
 import argparse, logging
 
 def set_debug():
@@ -86,6 +86,34 @@ def track(args):
 
     tracking.track(util.satellite_norad_from_input(args.satellite), args.rotor, args.radio, args.rotor_usb, args.rx_usb, args.tx_usb, args.trx_usb, not args.unlock, rotor_mode_overwrite)
 
+# testing subcommands
+def test_rotor(args):
+    rotor_mode_overwrite = None
+    if args.rotor_normal:
+        rotor_mode_overwrite = 1
+    elif args.rotor_inverted:
+        rotor_mode_overwrite = 2
+
+    test.rotor_test(args.rotor, args.rotor_usb, rotor_mode_overwrite)
+
+def test_rotor_full(args):
+    rotor_mode_overwrite = None
+    if args.rotor_normal:
+        rotor_mode_overwrite = 1
+    elif args.rotor_inverted:
+        rotor_mode_overwrite = 2
+
+    test.rotor_test_full(args.rotor, args.rotor_usb, rotor_mode_overwrite)
+
+def test_rotor_home(args):
+    rotor_mode_overwrite = None
+    if args.rotor_normal:
+        rotor_mode_overwrite = 1
+    elif args.rotor_inverted:
+        rotor_mode_overwrite = 2
+
+    test.rotor_home(args.rotor, args.rotor_usb, rotor_mode_overwrite)
+
 # settings subcommands
 def list_settings(args):
     logging.log(logging.INFO, "Listing settings...")
@@ -147,16 +175,23 @@ def set_up_argparse():
     parser_sources_remove = sources_sub.add_parser("remove", help="Remove a TLE source")
     parser_sources_remove.set_defaults(func=remove_source)
 
+    # common parser for arguments shared between tracking and testing subcommands (argparse is very weird)
+    parser_control_common = argparse.ArgumentParser(add_help=False)
+    parser_control_common.add_argument("--rotor", type=str, choices=tracking.list_rotors(), dest="rotor",
+                              help="The name of a rotor config file (without file extension)")
+    parser_control_common.add_argument("--radio", type=str, choices=tracking.list_radios(),
+                              help="The name of a radio config file (without file extension)")
+    parser_control_common.add_argument("-o", "--rotor_usb", type=str,
+                              help="USB port that the rotor is connected to (optional)")
+    parser_control_common.add_argument("-n", "--rotor_normal", action="store_true",
+                              help="Overwrite the rotor config to use rotor control mode 1")
+    parser_control_common.add_argument("-i", "--rotor_inverted", action="store_true",
+                              help="Overwrite the rotor config to use rotor control mode 2")
+
     # tracking subcommand
-    parser_track = sub_parsers.add_parser("track", help="Track a satellite")
+    parser_track = sub_parsers.add_parser("track", help="Track a satellite", parents=[parser_control_common])
     parser_track.add_argument("satellite", help="Either the NORAD ID, COSPAR ID or name of the satellite to be tracked." \
                                                   "TLE must be avaliable in local database.")
-    parser_track.add_argument("--radio", type=str, choices=tracking.list_radios(),
-                              help="The name of a radio config file (without file extension)")
-    parser_track.add_argument("--rotor", type=str, choices=tracking.list_rotors(),
-                              help="The name of a rotor config file (without file extension)")
-    parser_track.add_argument("-o", "--rotor_usb", type=str,
-                              help="USB port that the rotor is connected to (optional)")
     parser_track.add_argument("-r", "--rx_usb", type=str,
                               help="USB port that the receiver is connected to (optional)")
     parser_track.add_argument("-t", "--tx_usb", type=str,
@@ -165,11 +200,21 @@ def set_up_argparse():
                               help="USB port that the transceiver is connected to (optional)")
     parser_track.add_argument("-u", "--unlock", action="store_true",
                               help="Don't lock uplink and downlink together for satellites with a frequency range.")
-    parser_track.add_argument("-n", "--rotor_normal", action="store_true",
-                              help="Overwrite the rotor config to use rotor control mode 1")
-    parser_track.add_argument("-i", "--rotor_inverted", action="store_true",
-                              help="Overwrite the rotor config to use rotor control mode 2")
     parser_track.set_defaults(func=track)
+
+    # testing subcommands
+    parser_test = sub_parsers.add_parser("test", help="Test a rotor or radio", parents=[parser_control_common])
+    test_sub = parser_test.add_subparsers(required=True)
+
+    parser_test_rotor = test_sub.add_parser("rotor", help="Test a rotor by moving it a bit or select another rotor test", parents=[parser_control_common])
+    parser_test_rotor.set_defaults(func=test_rotor)
+    test_rotor_sub = parser_test_rotor.add_subparsers(required=False)
+
+    parser_test_rotor_home = test_rotor_sub.add_parser("home", help="Home a rotor", parents=[parser_control_common])
+    parser_test_rotor_home.set_defaults(func=test_rotor_home)
+
+    parser_test_rotor_full = test_rotor_sub.add_parser("full", help="Test a rotor by moving it to various points", parents=[parser_control_common])
+    parser_test_rotor_full.set_defaults(func=test_rotor_full)
 
     # settings subcommands
     parser_settings = sub_parsers.add_parser("settings", help="View and change settings")
