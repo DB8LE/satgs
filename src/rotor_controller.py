@@ -1,6 +1,6 @@
 from src import paths, util
-from typing import Dict
-import subprocess, os, json, logging, socket
+from typing import Dict, Tuple
+import subprocess, os, json, logging, socket, time
 
 ROTOR_CONF_EXPECTED_KEYS = set(["usb_port", "rotctl_ID", "min_az", "max_az", "min_el", "max_el", "control_type", "home_on_end"])
 
@@ -90,6 +90,16 @@ class Rotor_Controller():
         # multiple lines, strip trailing newline
         return [line.strip() for line in response.splitlines()]
     
+    def _apply_control_mode(self, azimuth: int, elevation: int) -> Tuple[int, int]:
+        """
+        Applies control mode to target azimuth/elevation to get the real position that the rotor needs to spin to.
+        """
+
+        if self.control_type == 2:
+            azimuth = (round(self.max_az/2) + azimuth) % self.max_az
+
+        return (azimuth, elevation)
+    
     def rotate_to(self, azimuth: int, elevation: int):
         """
         Send rotctld command to spin rotor to a certain azimuth and elevation.
@@ -132,10 +142,46 @@ class Rotor_Controller():
         self.update_current_position()
 
         # Apply alternate control style if option is set
-        if self.control_type == 2:
-            new_azimuth = (round(self.max_az/2) + new_azimuth) % self.max_az
+        new_azimuth, new_elevation = self._apply_control_mode(new_azimuth, new_elevation)
 
         self.rotate_to(new_azimuth, new_elevation)
+
+    def rotate_to_blocking(self, azimuth: int, elevation: int, tolerance:int = 2):
+        """
+        Spins the rotor to a certain position and blocks (sleeps) until it has reached the target position.
+        Requires target azimuth, elevation, and inaccuracy tolerance in degrees.
+        """
+
+        # If alternate control type is used, make sure the correct target azimuth is being checked for
+        target_azimuth, target_elevation = self._apply_control_mode(azimuth, elevation)
+
+        # Check if target is in supported rotor range (TODO: in non-blocking rotation this is done silently. Change that?)
+        if target_azimuth < self.min_az:
+            if abs(target_azimuth - self.min_az) > tolerance:
+                logging.log(logging.WARN, f"Target azimuth {target_azimuth} is too far from minimum possible azimuth to be in tolerance. Setting target to closest azimuth possible.")
+                target_azimuth = self.min_az
+        elif target_azimuth > self.max_az:
+            if abs(target_azimuth - self.max_az) > tolerance:
+                logging.log(logging.WARN, f"Target azimuth {target_azimuth} is too far from maximum possible azimuth to be in tolerance. Setting target to closest azimuth possible.")
+                target_azimuth = self.max_az
+
+        if target_elevation < self.min_el:
+            if abs(target_elevation - self.min_el) > tolerance:
+                logging.log(logging.WARN, f"Target elevation {target_elevation} is too far from minimum possible elevation to be in tolerance. Setting target to closest elevation possible.")
+                target_elevation = self.min_el
+        elif target_elevation > self.max_el:
+            if abs(target_elevation - self.max_el) > tolerance:
+                logging.log(logging.WARN, f"Target elevation {target_elevation} is too far from maximum possible elevation to be in tolerance. Setting target to closest elevation possible.")
+                target_elevation = self.min_el
+
+        # Rotate to target location
+        self.update(azimuth, elevation)
+
+        # Check if current rotation is within tolerated range of target angles
+        while (abs(target_azimuth-self.current_az) > 2) or (abs(target_elevation-self.current_el) > 2): # type: ignore
+            self.update_current_position()
+            logging.log(logging.DEBUG, f"Rotating to target - AZ {self.current_az} -> {target_azimuth}  EL {self.current_el} -> {target_elevation}")
+            time.sleep(0.5)
 
     def close(self):
         """Close socket and terminate rotctl instance"""

@@ -106,6 +106,7 @@ def track(NORAD_ID: str,
 
         # Notify user
         logging.log(logging.INFO, f"Found next pass at {earliest_rise_time.strftime('%H:%M:%S')} UTC with an initial azimuth of {round(initial_azimuth.degrees)}°") # type: ignore
+    initial_azimuth = round(initial_azimuth.degrees) # type: ignore
 
     # Initialize rotor
     rotor = None
@@ -120,19 +121,10 @@ def track(NORAD_ID: str,
     logging.log(logging.INFO, "Ready to start")
 
     try: # From this point on, catch KeyboardInterrupt or other excpetions and make sure rot/rigctld are terminated and the sockets are closed.
+        # Spin rotor to pass starting angle
         if rotor:
             logging.log(logging.INFO, "Rotating to starting azimuth")
-            initial_azimuth = round(initial_azimuth.degrees) # type: ignore
-            rotor.update(initial_azimuth, initial_elevation)
-            
-            # If alternate control type is used, make sure the correct target azimuth is being checked for
-            rotor_target_azimuth = initial_azimuth
-            if rotor.control_type == 2:
-                rotor_target_azimuth = (round(rotor.max_az/2) + initial_azimuth) % rotor.max_az
-
-            while abs(rotor_target_azimuth-rotor.current_az) > 2: # Only continue when rotor is within 2 degrees of initial azimuth
-                rotor.update_current_position()
-                time.sleep(0.5)
+            rotor.rotate_to_blocking(initial_azimuth, initial_elevation)
             logging.log(logging.INFO, "Rotor is at start azimuth")
         
         # Wait for pass to start if pass hasn't begun yet
@@ -184,6 +176,7 @@ def track(NORAD_ID: str,
                 if elevation < 0:
                     logging.log(logging.INFO, "Pass completed!")
                     if rotor and rotor.home_on_end:
+                        time.sleep(5) # Wait a bit to make sure the signal is really gone
                         logging.log(logging.INFO, "Homing rotor..")
                         rotor.update(0, 0)
                     break
@@ -195,7 +188,7 @@ def track(NORAD_ID: str,
                 rotor.update(azimuth, round(elevation)) # type: ignore
 
                 # Generate rotor status message
-                rotor_status_msg = f"   AZ: {azimuth}°  EL: {round(elevation, 1)}°"
+                rotor_status_msg = f"AZ: {azimuth}°  EL: {round(elevation, 1)}°"
 
             # Handle radios
             radio_status_msg = ""
@@ -222,7 +215,7 @@ def track(NORAD_ID: str,
                     doppler_shift_symbol = "+" if doppler_shift >= 0 else "" # show plus if doppler shift is positive
                     uplink_message = f"U: {current_uplink}M {doppler_shift_symbol}{doppler_shift}"
 
-                radio_status_msg = f"{downlink_message}  {uplink_message}"
+                radio_status_msg = f"{downlink_message}  {uplink_message}   "
 
             # Log current status to console
             logging.log(logging.INFO, radio_status_msg+rotor_status_msg)
