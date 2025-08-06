@@ -3,7 +3,9 @@ repo_url: https://github.com/DB8LE/satgs
 edit_uri: edit/main/docs/
 
 nav:
-  - "Welcome": "index.md"
+  - "Home": "index.md"
+  - "Interfaces": "interfaces.md"
+  - "North- and Southcrossings": "crossings.md"
 
 theme:
   name: readthedocs
