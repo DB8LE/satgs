@@ -6,7 +6,7 @@ The structure of rotor & radio configuration files described with comments. Note
 
 There are multiple radio types you can configure. You can define any combination of these, as long as at least one is defined, and only a maximum of one of each type is defined.
 
-```jsonc
+```json
 {
     "sdr": {                   // a connection to a rigctld server like the one in SDR++ to serve as a receiver (downlink)
         "rigctl_port": 4532    // port of the rigctl server
@@ -25,7 +25,7 @@ There are multiple radio types you can configure. You can define any combination
         "serial_speed": 38400, // serial speed of the connection
         "offset": 0            // frequency offset in hz
     },
-    "trx": { // a hamlib controlled rig to serve as a transceiver [NOT IMPLEMENTED YET]
+    "trx": {                   // a hamlib controlled rig to serve as a transceiver [NOT IMPLEMENTED YET]
 
     }
 }
@@ -38,7 +38,7 @@ In the config the words north- and southcrossings are refrenced. These are expla
 !!! note
     In GPredict there is the option to set a rotor type which has its azimuth split as a negative and positive half. I don't really know how these work with rotctl (for example if rigctl can respond with a negative value to the `p` command in this case, or if rigctl shifts the range to the positive area). I still have to research this. Until then, I dont know how these rotors will behave with the program.
 
-```jsonc
+```json
 {
     "usb_port": "/dev/ttyUSB0", // USB port that the rotor is connected to
                                 // this can be overwritten with the -u or --usb command line argument

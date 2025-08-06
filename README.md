@@ -4,7 +4,7 @@ SatGS is a command line tool that controls radios and rotors for amateur satelli
 
 *Unless you're running an SDR, in which case you have to set up your SDR application too.
 
-**For more info, check out the wiki at https://satgs.readthedocs.io/**
+**For more info, check out the wiki at <https://satgs.readthedocs.io/>**
 
 ## Known bugs
 
