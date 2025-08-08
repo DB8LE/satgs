@@ -6,6 +6,7 @@ nav:
   - "Home": "index.md"
   - "Interfaces": "interfaces.md"
   - "North- and Southcrossings": "crossings.md"
+  - "Example Setup": "example.md"
 
 theme:
   name: readthedocs
