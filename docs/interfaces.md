@@ -2,6 +2,8 @@
 
 The structure of rotor & radio configuration files described with comments. Note that this isn't valid JSON because of the comments.
 
+Config files are stored in the settings directory inside the rotors and radios folders. You can find the config directory using `$ satgs settings path`.
+
 ## Radios
 
 There are multiple radio types you can configure. You can define any combination of these, as long as at least one is defined, and only a maximum of one of each type is defined.
