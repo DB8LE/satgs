@@ -207,11 +207,13 @@ def track(NORAD_ID: str,
 
                 if radio.corrected_downlink:
                     current_downlink = round(radio.current_downlink_frequency/1000000, 4) # show base frequency in MHz
+                    current_downlink = "{:.4f}".format(current_downlink) # make sure there's always 4 floating points (pad with zeroes)
                     doppler_shift = round(radio.downlink_correction)  # show doppler shift correction in herz
                     doppler_shift_symbol = "+" if doppler_shift >= 0 else "" # show plus if doppler shift is positive
                     downlink_message = f"D: {current_downlink}M {doppler_shift_symbol}{doppler_shift}"
                 if radio.corrected_uplink:
                     current_uplink = round(radio.current_uplink_frequency/1000000, 4) # show base frequency in MHz
+                    current_uplink = "{:.4f}".format(current_uplink) # make sure there's always 4 floating points (pad with zeroes)
                     doppler_shift = round(radio.uplink_correction)  # show doppler shift correction in herz
                     doppler_shift_symbol = "+" if doppler_shift >= 0 else "" # show plus if doppler shift is positive
                     uplink_message = f"U: {current_uplink}M {doppler_shift_symbol}{doppler_shift}"
