@@ -2,40 +2,43 @@ from src import tle, util, tracking, settings, paths, transponders, test
 import argparse, logging
 
 def set_debug():
-    logging.getLogger().setLevel(logging.DEBUG)
+    """A function to set the logging level to debug"""
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    for handler in root.handlers: # theoretically there should only be one handler but who knows
+        handler.setLevel(logging.DEBUG)
 
-def show_version(args):
-    # If check for testing branch. If it is detected, also show latest commit hash
-    # We could use a library for this to gurantee that it works, regardless if git is installed,
-    # but the user probably has git installed anyway so no need for another library 
+def show_version(_args):
+    """A function to log the currently running version and exit"""
+
     import subprocess
-    try:
+    import importlib.metadata
+
+    latest_commit_hash = ""
+    git_branch = ""
+
+    try: # No garantee that git is installed
         git_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip().decode('utf-8')
         latest_commit_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
-    except FileNotFoundError:
-        logging.log(logging.DEBUG, "Git not installed, failed to check for branch.")
-        git_branch = "main" # it the user doesn't have git installed, they're probably using the master branch anyway
-        latest_commit_hash = "N/A"
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         logging.log(logging.DEBUG, "Error while checking git branch & lastest commit hash.")
         logging.log(logging.DEBUG, e)
-        git_branch = "main" # it the user doesn't have git installed, they're probably using the master branch anyway
-        latest_commit_hash = "N/A"
 
-    import importlib.metadata
-    if git_branch != "main":
-        logging.log(logging.INFO, f"You are running satgs v{importlib.metadata.version('satgs')}@{git_branch} ({latest_commit_hash})")
-    else:
+    print()
+
+    if latest_commit_hash == "":
         logging.log(logging.INFO, f"You are running satgs v{importlib.metadata.version('satgs')}")
+    else:
+        logging.log(logging.INFO, f"You are running satgs v{importlib.metadata.version('satgs')} ({git_branch}/{latest_commit_hash})")
 
     exit()
 
-def no_args_message(args):
+def no_args_message(_args):
     logging.log(logging.ERROR, "Please provide a subcommand to run. Run `satgs --help` for help.")
     
 
 # update subcommand functions
-def update_all(args):
+def update_all(_args):
     logging.log(logging.INFO, "Updating TLEs..")
     tle.download_TLEs()
     logging.log(logging.INFO, "Updating transponders")
@@ -43,29 +46,29 @@ def update_all(args):
     logging.log(logging.INFO, "Done!")
     exit()
 
-def update_TLEs(args):
+def update_TLEs(_args):
     tle.download_TLEs()
     logging.log(logging.INFO, "Done!")
     exit()
 
-def update_transponders(args):
+def update_transponders(_args):
     transponders.download_transponders()
     logging.log(logging.INFO, "Done!")
     exit()
 
 # sources subcommand functions
-def add_source(args):
+def add_source(_args):
     logging.log(logging.INFO, "Enter the URL to the source your would like to add.")
     source_url = util.decorated_input()
     tle.add_source(source_url)
     exit()
 
-def list_sources(args):
+def list_sources(_args):
     logging.log(logging.INFO, "Listing sources...")
     tle.list_sources()
     exit()
 
-def remove_source(args):
+def remove_source(_args):
     logging.log(logging.INFO, "Listing sources...")
     sources = tle.list_sources()
     logging.log(logging.INFO, "Enter the index of the source you'd like to remove.")
@@ -118,7 +121,7 @@ def test_radio(args):
     test.test_radio(args.radio, args.downlink, args.uplink, args.rx_usb, args.tx_usb, args.trx_usb)
 
 # settings subcommands
-def list_settings(args):
+def list_settings(_args):
     logging.log(logging.INFO, "Listing settings...")
     settings_data = settings.load_settings_file()
 
@@ -131,10 +134,10 @@ def modify_setting(args):
     settings.set_setting(args.setting_key, args.new_setting_value)
     exit()
 
-def get_settings_path(args):
+def get_settings_path(_args):
     logging.log(logging.INFO, "Settings path: "+paths.CONFIG_DIR)
 
-def clean_data(args):
+def clean_data(_args):
     logging.log(logging.INFO, "Are you sure that you want to delete all settings (rotor config, radio config, sources, settings)? (N/y)")
     choice = util.decorated_input()
     if choice.lower().strip() == "y":
@@ -145,6 +148,8 @@ def set_up_argparse():
     parser = argparse.ArgumentParser(prog="satgs", add_help=True)
     parser.add_argument("--debug", action="store_true",
                         help="set logging level to debug")
+    parser.add_argument("--version", action="store_true",       # Alias for `$ satgs version`
+                        help="show currently installed version")
 
     # Set up subcommands
     sub_parsers = parser.add_subparsers()
@@ -256,5 +261,8 @@ def set_up_argparse():
     if args.debug:
         set_debug()
 
-    # Run subcommand associated functions
+    if args.version:
+        show_version(args)
+
+    # Run subcommand associated function
     args.func(args)

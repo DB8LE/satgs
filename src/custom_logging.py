@@ -53,5 +53,4 @@ def set_up_logging():
     logging_handler.setFormatter(CustomFormatter())
     logging_root.addHandler(logging_handler)
 
-    if logging_level == logging.DEBUG:
-        logging.log(logging.INFO, "Poetry environment detected. Logging level set to debug.")
+    logging.log(logging.DEBUG, "Poetry environment detected. Setting logging level to debug.")
