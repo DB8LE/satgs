@@ -199,7 +199,7 @@ def track(NORAD_ID: str,
             
                 # Update frequencies
                 radio.update_lock()
-                radio.update(range_rate) # type: ignore
+                radio.update(range_rate.km_per_s) # type: ignore
 
                 # Prepare status message
                 downlink_message = ""
