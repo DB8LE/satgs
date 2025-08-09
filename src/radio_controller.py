@@ -261,9 +261,6 @@ class Radio_Controller():
         Synchronise the frequencies of uplink and downlink devices. The `update` function must be called to apply these updated frequencies.
         """
 
-        #if (self.downlink_freq is None) or (self.uplink_freq is None): # No need for locking in this case
-        #    return
-
         # Meassure frequencies of all downlink radios
         down_freqs = {}
         if self.sdr_sock:

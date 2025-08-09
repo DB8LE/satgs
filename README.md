@@ -8,5 +8,6 @@ SatGS is a command line tool that controls radios and rotors for amateur satelli
 
 ## Known bugs
 
+- When using rotctld (hamlib) newer than v4.6, configuring the the `tracking_update_interval` to be below 1 second breaks frequency synchronisation.
 - When settings file hasn't been created yet (usually first run of the program), logging logs everything twice. Once with default format, once with the custom format.
 - Geostationary satellites might cause undefined behaviour (?)

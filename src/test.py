@@ -91,6 +91,6 @@ def test_radio(radio_config_name: str, downlink_frequency: int | None, uplink_fr
         while True:
             radio.update_lock()
             radio.update(0)
-            time.sleep(0.5)
+            time.sleep(1)
     except Exception:
         radio.close()
