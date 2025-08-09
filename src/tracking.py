@@ -178,7 +178,8 @@ def track(NORAD_ID: str,
                     if rotor and rotor.home_on_end:
                         time.sleep(5) # Wait a bit to make sure the signal is really gone
                         logging.log(logging.INFO, "Homing rotor..")
-                        rotor.update(0, 0)
+                        rotor.rotate_to_blocking(0, 0)
+                        logging.log(logging.INFO, "Done")
                     break
 
             # Handle rotor
