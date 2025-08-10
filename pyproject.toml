@@ -1,7 +1,9 @@
 [project]
 name = "satgs"
-version = "0.4.0"
+version = "0.4.1"
 description = "A command line tool that controls radios and rotors for amateur satellite operation."
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 authors = [
     {name = "DB8LE",email = "db8le@darc.de"}
 ]
@@ -14,6 +16,11 @@ dependencies = [
     "importlib-resources (>=6.5.2,<7.0.0)",
     "numpy (>=2.1.0)"
 ]
+
+[project.urls]
+documentation = "https://satgs.readthedocs.io/en/latest/"
+repository = "https://github.com/DB8LE/satgs"
+issues = "https://github.com/DB8LE/satgs/issues"
 
 [tool.poetry]
 packages = [{ include = "src" }]
