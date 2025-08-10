@@ -3,7 +3,9 @@ name: Publish Package
 on:
   push:
     branches:
-      - main
+      - main # update on push to main branch
+    paths-ignore:
+      - 'docs/**' # don't update on pypi if only docs were changed
 
 jobs:
   publish:
