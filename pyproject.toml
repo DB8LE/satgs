@@ -1,6 +1,6 @@
 [project]
 name = "satgs"
-version = "0.4.1"
+version = "0.4.2"
 description = "A command line tool that controls radios and rotors for amateur satellite operation."
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
@@ -16,6 +16,9 @@ dependencies = [
     "importlib-resources (>=6.5.2,<7.0.0)",
     "numpy (>=2.1.0)"
 ]
+
+[tool.poetry.dependencies]
+colorama = { version = ">=0.4.6,<0.5.0", markers = "sys_platform == 'win32'" }
 
 [project.urls]
 documentation = "https://satgs.readthedocs.io/en/latest/"

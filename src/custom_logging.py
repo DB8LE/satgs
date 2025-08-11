@@ -1,5 +1,5 @@
 from src import util
-import logging, sys
+import logging, sys, os
 
 class CustomFormatter(logging.Formatter):
     # A custom logging formatter
@@ -44,6 +44,10 @@ def set_up_logging():
     logging_level = logging.INFO
     if util.is_poetry():
         logging_level = logging.DEBUG
+
+    if os.name == "nt":
+        from colorama import just_fix_windows_console
+        just_fix_windows_console()
 
     # Set up logging to print to console
     logging_root = logging.getLogger()
