@@ -1,6 +1,6 @@
 [project]
 name = "satgs"
-version = "0.4.2"
+version = "0.4.3"
 description = "A command line tool that controls radios and rotors for amateur satellite operation."
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]

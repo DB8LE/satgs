@@ -15,19 +15,25 @@ There are multiple radio types you can configure. You can define any combination
     },
     "rx": {                    // a hamlib controlled rig to serve as a receiver (downlink)
         "usb_port": "/dev/ttyUSB0",
-        "rigctl_ID": 123,      // rigctl id of your receiver
-                               // to find this, run `rigctl --list`
-        "serial_speed": 38400, // serial speed of the connection
-        "offset": 0            // frequency offset in hz
+        "rigctl_ID": 123,           // rigctl id of your receiver
+                                    // to find this, run `rigctl --list`
+        "rigctl_port_overwrite": 0, // optionally overwrite the port that will be used for rigctl
+                                    // if set to 0 a free port will automatically be chosen
+                                    // if using this, make sure the port is not already in use
+        "serial_speed": 38400,      // serial speed of the connection
+        "offset": 0                 // frequency offset in hz
     },
-    "tx": {                    // a hamlib controlled rig to serve as a transmitter (uplink)
+    "tx": {                         // a hamlib controlled rig to serve as a transmitter (uplink)
         "usb_port": "/dev/ttyUSB0",
-        "rigctl_ID": 123,      // rigctl id of your transmitter
-                               // to find this, run `rigctl --list`
-        "serial_speed": 38400, // serial speed of the connection
-        "offset": 0            // frequency offset in hz
+        "rigctl_ID": 123,           // rigctl id of your transmitter
+                                    // to find this, run `rigctl --list`
+        "rigctl_port_overwrite": 0, // optionally overwrite the port that will be used for rigctl
+                                    // if set to 0 a free port will automatically be chosen
+                                    // if using this, make sure the port is not already in use
+        "serial_speed": 38400,      // serial speed of the connection
+        "offset": 0                 // frequency offset in hz
     },
-    "trx": {                   // a hamlib controlled rig to serve as a transceiver [NOT IMPLEMENTED YET]
+    "trx": {                        // a hamlib controlled rig to serve as a transceiver [NOT IMPLEMENTED YET]
 
     }
 }

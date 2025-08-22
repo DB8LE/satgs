@@ -2,6 +2,7 @@
     "rx": {
         "usb_port": "",
         "rigctl_ID": 1,
+        "rigctl_port_overwrite": 0,
         "serial_speed": 1,
         "offset": 0
     }

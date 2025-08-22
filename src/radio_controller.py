@@ -3,7 +3,7 @@ from typing import Dict
 import subprocess, os, json, logging, socket
 
 RADIO_SDR_CONF_EXPECTED_KEYS = set(["rigctl_port"])
-RADIO_RX_CONF_EXPECTED_KEYS = set(["usb_port", "rigctl_ID", "serial_speed", "offset"])
+RADIO_RX_CONF_EXPECTED_KEYS = set(["usb_port", "rigctl_ID", "rigctl_port_overwrite", "serial_speed", "offset"])
 RADIO_TX_CONF_EXPECTED_KEYS = RADIO_RX_CONF_EXPECTED_KEYS
 
 def parse_radio_config(radio_config_name: str) -> Dict[str, Dict[str, str | int]]:
@@ -107,7 +107,7 @@ class Radio_Controller():
             self.rx_rigctl_ID = rx_config["rigctl_ID"]
             self.rx_serial_speed = rx_config["serial_speed"]
             self.rx_offset = rx_config["offset"]
-            self.rx_rigctld_port = util.get_unused_port("rigctld (receiver)")
+            self.rx_rigctld_port = util.get_unused_port("rigctld (receiver)") if rx_config["rigctl_port_overwrite"] == 0 else rx_config["rigctl_port_overwrite"]
 
             # Check if offset and speed are ints
             try:
@@ -162,7 +162,7 @@ class Radio_Controller():
             self.tx_rigctl_ID = tx_config["rigctl_ID"]
             self.tx_serial_speed = tx_config["serial_speed"]
             self.tx_offset = tx_config["offset"]
-            self.tx_rigctld_port = util.get_unused_port("rigctld (transmitter)")
+            self.tx_rigctld_port = util.get_unused_port("rigctld (transmitter)") if tx_config["rigctl_port_overwrite"] == 0 else tx_config["rigctl_port_overwrite"]
 
             # Check if offset and speed are ints
             try:
