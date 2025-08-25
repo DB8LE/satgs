@@ -85,13 +85,13 @@ def track(NORAD_ID: str,
         pass_already_started = True
         initial_azimuth = azimuth
         initial_elevation = round(elevation)
+        earliest_rise_time = datetime.datetime.now(datetime.timezone.utc)
     else:
         # Calculate time of next pass
 
         stop = utc_now + datetime.timedelta(hours=12)
         times, events = satellite.find_events(station_location, timescale.from_datetime(utc_now), timescale.from_datetime(stop))
 
-        earliest_rise_time = None
         try:
             earliest_rise_index = list(events).index(0)
             earliest_rise_time = times[earliest_rise_index]
@@ -118,9 +118,12 @@ def track(NORAD_ID: str,
     if radio_config_name:
         radio = radio_controller.Radio_Controller(radio_config_name, downlink_start, uplink_start, rx_usb_overwrite, tx_usb_overwrite, trx_usb_overwrite, inverting, lock_up_down)
 
-    logging.log(logging.INFO, "Ready to start")
-
     try: # From this point on, catch KeyboardInterrupt or other excpetions and make sure rot/rigctld are terminated and the sockets are closed.
+        logging.log(logging.INFO, "Ready to start")
+        if radio:
+            # Set rig frequency to uncorrected frequency to test rig communication
+            radio.update(0)
+        
         # Spin rotor to pass starting angle
         if rotor:
             logging.log(logging.INFO, "Rotating to starting azimuth")
@@ -145,7 +148,7 @@ def track(NORAD_ID: str,
                 logging.log(logging.INFO, f"Pass starting in {round(seconds_until_pass)} seconds!")
                 time.sleep(seconds_until_pass)
 
-        # Update frequency once before starting
+        # Update frequency once just before starting so first offset lock offset is calculated correctly
         if radio:
             utc_now = datetime.datetime.now(datetime.timezone.utc)
             pos = (satellite - station_location).at(timescale.from_datetime(utc_now))
